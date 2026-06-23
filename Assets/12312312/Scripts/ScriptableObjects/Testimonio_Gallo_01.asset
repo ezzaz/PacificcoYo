@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89e75feb922abcf48a0a3dd0bfb06a3d, type: 3}
+  m_Name: Testimonio_Gallo_01
+  m_EditorClassIdentifier: 
+  pregunta: "\xBFCu\xE1l es el principal obst\xE1culo que enfrenta el protagonista
+    para descifrar el mensaje del mimo en \"El Centro\"?"
+  esVerdadera: 1
+  esSeleccionMultiple: 1
+  esLafinal: 0
+  respuesta1: "El mimo solo pod\xEDa mover una mano."
+  respuesta2: "El jefe no quer\xEDa que hablara con el cliente."
+  respuesta3: "La carta que conten\xEDa la explicaci\xF3n vol\xF3 y se parti\xF3
+    en pedazos."
+  respuesta4: El caballero de hojalata le bloqueaba el paso.
+  pensamiento1: Cuando hable con el, algo hizo
+  pensamiento2: Cuando hable con el, algo hizo
+  pensamiento3: Cuando hable con el, algo hizo

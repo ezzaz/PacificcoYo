@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89e75feb922abcf48a0a3dd0bfb06a3d, type: 3}
+  m_Name: PreguntasFinales 2
+  m_EditorClassIdentifier: 
+  pregunta: "El jefe le indic\xF3 al protagonista, mediante un gesto y una mirada,
+    que \xE9l se encargar\xEDa de buscar la carta perdida mientras el protagonista
+    intentaba comunicarse con el mimo."
+  esVerdadera: 0
+  esSeleccionMultiple: 0
+  esLafinal: 0
+  respuesta1: 
+  respuesta2: 
+  respuesta3: 
+  respuesta4: 
+  pensamiento1: 
+  pensamiento2: 
+  pensamiento3: 

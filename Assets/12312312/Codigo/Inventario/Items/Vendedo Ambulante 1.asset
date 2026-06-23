@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a942bf601f21e0b4087a7e6d57c0aa52, type: 3}
+  m_Name: Vendedo Ambulante 1
+  m_EditorClassIdentifier: 
+  itemName: VendendorAmbulante
+  icon: {fileID: -5633961650488967263, guid: 8b5b599e13f63964195939096f80cb12, type: 3}
+  description: "El extra\xF1amente asi\xE1tico caballero se volteo a verme al notar
+    mi presencia \u2013 \xA1Hey chico!, jam\xE1s hab\xEDa visto tu cara por estos
+    sectores, \xBFeres nuevo? \xBFsabes d\xF3nde ir? Porque sabes que tengo unos
+    mapas del centro actualizados al d\xEDa a solo 5000 pesos, mapas plegables y
+    reutilizables para planificar cualquier ruta por el centro \u2013 Me ofreci\xF3
+    con una gran e inesperado entusiasmo, juzgando por la cara que lleva. \r\n\r\n-
+    Gracias por la oferta, pero tengo un buen sentido de la orientaci\xF3n \u2013
+    respond\xED al caballero \u2013 por casualidad, \xBFno habr\xE1 visto un sobre
+    pasar volando por aqu\xED? \r\n\r\n- \xBFPerdiste una carta? Tambi\xE9n vendo
+    sobres, incluso tengo un servicio especial de cartas escritas a mano, \xA1\xA1garantizo
+    gran velocidad, est\xE9tica y resultados por solo $19.990!! "
+  utilidad: 
