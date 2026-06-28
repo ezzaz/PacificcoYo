@@ -6,19 +6,19 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Menu.unity
+    path: Assets/_OceanGame/Scenes/Menu.unity
     guid: 882d49bb9318e7140b868eea1b7ed1b7
   - enabled: 1
-    path: Assets/Scenes/Minijuego1.unity
+    path: Assets/_OceanGame/Scenes/Minijuego1.unity
     guid: 63bde075a4acca74eb8036e5b3579f6d
   - enabled: 1
-    path: Assets/Scenes/Minijuego2.unity
+    path: Assets/_OceanGame/Scenes/Minijuego2.unity
     guid: 3aa418ba8f0969c48a5c3f24413244de
   - enabled: 1
-    path: Assets/Scenes/Minijuego3.unity
+    path: Assets/_OceanGame/Scenes/Minijuego3.unity
     guid: 81781cff7888d19408eb710d0a0a78ba
   - enabled: 1
-    path: Assets/Scenes/Creditos.unity
+    path: Assets/_OceanGame/Scenes/Creditos.unity
     guid: 8bf33fd31704fc94198aab3d508e2470
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
