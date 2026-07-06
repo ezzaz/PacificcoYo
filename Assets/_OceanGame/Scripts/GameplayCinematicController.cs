@@ -11,7 +11,8 @@ public class GameplayCinematicController : MonoBehaviour
     {
         Minijuego1,
         Minijuego2,
-        Minijuego3
+        Minijuego3,
+        Minijuego4
     }
 
     [Header("Current Level Configuration")]
@@ -19,11 +20,11 @@ public class GameplayCinematicController : MonoBehaviour
     public float delayBeforeStart = 0.5f;
 
     [Header("Minijuego 2 Settings (Fishing)")]
-    public int fishRequiredToCatch = 3;
+    public int fishRequiredToCatch = 12;
     private int fishCaughtCount = 0;
 
     [Header("Minijuego 3 Settings (Fish Basket)")]
-    public int fishRequiredInBasket = 3;
+    public int fishRequiredInBasket = 6;
     private int fishInBasketCount = 0;
     public GameObject fishPrefab; // We'll spawn these automatically if not null
 
@@ -237,6 +238,38 @@ public class GameplayCinematicController : MonoBehaviour
                 cinematicDuration = 8f;
             }
         }
+        else if (currentLevel == LevelType.Minijuego4)
+        {
+            AddLine("Carlos", "Bien, he puesto los peces sobre la mesa de selección.", false);
+            AddLine("Carlos", "Debemos cuidar el mar. Es importante clasificar nuestra pesca del día con responsabilidad.", false);
+            AddLine("Carlos", "Debo devolver al océano a los peces muy pequeños para que sigan creciendo, y clasificar como basura los residuos plásticos para reciclarlos.", false);
+            AddLine("Carlos", "Hagamos clic con el ratón sobre cada objeto en la mesa para inspeccionarlo y decidir qué hacer con él.", false);
+
+            if (mainCamera != null)
+            {
+                mainCamera.transform.parent = null;
+                
+                // Slow beautiful sweep from high above the dock looking down at the table on the boat
+                cinematicStartPos = new Vector3(245f, 12f, 195f);
+                cinematicStartRot = Quaternion.Euler(20f, -40f, 0f);
+                
+                if (cameraParent != null)
+                {
+                    cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
+                    cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
+                }
+                else
+                {
+                    cinematicTargetPos = new Vector3(251.14f, 1.5f, 182.15f);
+                    cinematicTargetRot = Quaternion.identity;
+                }
+
+                mainCamera.transform.position = cinematicStartPos;
+                mainCamera.transform.rotation = cinematicStartRot;
+                cinematicProgress = 0f;
+                cinematicDuration = 10f; // nice 10s sweeping start
+            }
+        }
 
         dialogosSystem.StartDialogue();
         dialogueFinishedStarting = true;
@@ -319,7 +352,6 @@ public class GameplayCinematicController : MonoBehaviour
                 boatObj.AddComponent<FishingMinigame>();
             }
 
-            // Attach the specialized follow/rotation camera script so it stays above water and is fully orbitable
             if (mainCamera != null && mainCamera.GetComponent<BoatCameraFollow>() == null)
             {
                 mainCamera.gameObject.AddComponent<BoatCameraFollow>();
@@ -336,11 +368,15 @@ public class GameplayCinematicController : MonoBehaviour
         GameObject boatObj = GameObject.Find("Boat");
         if (boatObj == null) return;
 
+        // 6 spawn coordinates in front of the player on the deck
         Vector3[] spawnOffsets = new Vector3[]
         {
-            new Vector3(0.5f, 0.8f, -0.5f),
-            new Vector3(-0.5f, 0.8f, 0f),
-            new Vector3(0f, 0.8f, -1.2f)
+            new Vector3(0.4f, 0.7f, -0.4f),
+            new Vector3(-0.4f, 0.7f, -0.2f),
+            new Vector3(0f, 0.7f, -0.8f),
+            new Vector3(0.5f, 0.7f, -1.2f),
+            new Vector3(-0.5f, 0.7f, -1.0f),
+            new Vector3(0.1f, 0.7f, -0.5f)
         };
 
         for (int i = 0; i < spawnOffsets.Length; i++)
@@ -353,19 +389,22 @@ public class GameplayCinematicController : MonoBehaviour
             else
             {
                 fishInstance = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                fishInstance.name = "Pescado_Fresco_" + (i + 1);
-                fishInstance.transform.position = boatObj.transform.TransformPoint(spawnOffsets[i]);
-                fishInstance.transform.rotation = boatObj.transform.rotation;
-                fishInstance.transform.localScale = new Vector3(0.5f, 0.2f, 0.25f);
                 fishInstance.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.7f, 1f);
             }
 
+            fishInstance.name = "Pescado_Fresco_" + (i + 1);
             fishInstance.tag = "Box";
-            
+
+            // Force fish to be small and cute so they don't cover the boat or look gigantic
+            fishInstance.transform.localScale = new Vector3(0.18f, 0.18f, 0.18f);
+
             Rigidbody rb = fishInstance.GetComponent<Rigidbody>();
             if (rb == null) rb = fishInstance.AddComponent<Rigidbody>();
             rb.mass = 1.0f;
-            rb.isKinematic = false;
+            
+            // Deactivate gravity and make it kinematic at start so they don't fall into the infinite void or slide off
+            rb.isKinematic = true;
+            rb.useGravity = false;
 
             if (fishInstance.GetComponent<Collider>() == null)
             {
@@ -414,6 +453,11 @@ public class GameplayCinematicController : MonoBehaviour
         StartCoroutine(FinishMinigameWithCinematic());
     }
 
+    public void NotifyMinijuego4Complete()
+    {
+        StartCoroutine(FinishMinigameWithCinematic());
+    }
+
     private IEnumerator FinishMinigameWithCinematic()
     {
         yield return new WaitForSeconds(0.5f);
@@ -446,6 +490,11 @@ public class GameplayCinematicController : MonoBehaviour
             {
                 mainCamera.transform.position = new Vector3(230f, 8f, 170f);
                 mainCamera.transform.rotation = Quaternion.Euler(8f, 50f, 0f);
+            }
+            else if (currentLevel == LevelType.Minijuego4)
+            {
+                mainCamera.transform.position = new Vector3(255f, 15f, 185f);
+                mainCamera.transform.rotation = Quaternion.Euler(20f, -80f, 0f);
             }
         }
 
@@ -485,6 +534,12 @@ public class GameplayCinematicController : MonoBehaviour
                 AddLine("Carlos", "Ha sido un día maravilloso de paz, contemplando la inmensidad del océano.", false);
                 AddLine("Carlos", "Es hora de descansar y disfrutar de una hermosa noche.", false);
             }
+            else if (currentLevel == LevelType.Minijuego4)
+            {
+                AddLine("Carlos", "¡Perfecto! Hemos clasificado con éxito toda la pesca de hoy de manera sostenible.", false);
+                AddLine("Carlos", "El océano nos provee, y es nuestro deber sagrado cuidarlo y respetarlo de vuelta.", false);
+                AddLine("Carlos", "Ha sido una jornada maravillosa. Descansemos y preparemos todo para el mañana.", false);
+            }
 
             dialogosSystem.StartDialogue();
         }
@@ -517,6 +572,10 @@ public class GameplayCinematicController : MonoBehaviour
         }
         else if (currentLevel == LevelType.Minijuego3)
         {
+            SceneManager.LoadScene("Minijuego4");
+        }
+        else if (currentLevel == LevelType.Minijuego4)
+        {
             SceneManager.LoadScene("Creditos");
         }
     }
@@ -533,6 +592,17 @@ public class GameplayCinematicController : MonoBehaviour
 
     private void EnableControls()
     {
+        if (currentLevel == LevelType.Minijuego4)
+        {
+            if (playerMove != null) playerMove.enabled = false;
+            if (playerLook != null) playerLook.enabled = false;
+            if (boatControls != null) boatControls.enabled = false;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         if (playerMove != null) playerMove.enabled = true;
         if (playerLook != null) playerLook.enabled = true;
         if (boatControls != null) boatControls.enabled = true;

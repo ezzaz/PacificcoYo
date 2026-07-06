@@ -10,14 +10,15 @@ public class FishingMinigame : MonoBehaviour
         Casting,
         WaitingForBite,
         BiteActive,
+        MiniGame,
         Reeling
     }
 
     [Header("Fishing Settings")]
-    [SerializeField] private float minWaitTime = 3f;
-    [SerializeField] private float maxWaitTime = 7f;
-    [SerializeField] private float biteDuration = 2f;
-    [SerializeField] private float castDistance = 12f;
+    [SerializeField] private float minWaitTime = 2f;
+    [SerializeField] private float maxWaitTime = 5f;
+    [SerializeField] private float biteDuration = 2.5f;
+    [SerializeField] private float castDistance = 14f;
 
     [Header("Visual Prefabs (Optional)")]
     [SerializeField] private GameObject customBobberPrefab;
@@ -29,37 +30,60 @@ public class FishingMinigame : MonoBehaviour
     private Waves oceanWaves;
     private Transform playerCameraTransform;
 
+    // Fishing Zones
+    private FishingZone currentZone = null;
+
+    // Stardew Valley Minigame State Variables
+    private float barY = 0.1f; // 0 (bottom) to 1 (top)
+    private float barVelocity = 0f;
+    private float barHeight = 0.22f; // height of green catcher bar (normalized)
+    private float fishY = 0.4f; // 0 to 1
+    private float fishTargetY = 0.5f;
+    private float fishTimer = 0f;
+    private float catchProgress = 0.35f; // starts with a little progress, 0 to 1
+    private FishType currentActiveFish;
+    private float fishDifficultyFactor = 1.0f;
+
     // Contemplative text messages
     private string hudMessage = "";
     private string statusMessage = "";
     private float messageDisplayTimer = 0f;
 
-    // Fish database for variety
+    // Texture Styles for OnGUI
+    private Texture2D greenTexture;
+    private Texture2D redTexture;
+    private Texture2D yellowTexture;
+    private Texture2D darkBlueTexture;
+    private Texture2D grayTexture;
+
+    // Fish database with unique behaviors and difficulty factors
     private struct FishType
     {
         public string Name;
         public string Description;
         public float Points;
         public Color TextColor;
+        public float Difficulty; // 0.1 (very easy) to 2.0 (super wild)
 
-        public FishType(string name, string desc, float points, Color color)
+        public FishType(string name, string desc, float points, Color color, float difficulty)
         {
             Name = name;
             Description = desc;
             Points = points;
             TextColor = color;
+            Difficulty = difficulty;
         }
     }
 
     private readonly FishType[] fishDatabase = new FishType[]
     {
-        new FishType("Trucha Plateada del Atardecer", "Un pez pacífico que brilla con los últimos rayos de sol.", 15f, new Color(0.9f, 0.9f, 1f)),
-        new FishType("Salmón del Alba Serena", "Nada con gracia contra la corriente del océano.", 20f, new Color(1f, 0.8f, 0.8f)),
-        new FishType("Pez de Colores Fantasía", "Pequeño y vivaz, parece sacado de un sueño.", 10f, new Color(1f, 0.9f, 0.6f)),
-        new FishType("Cangrejo Esmeralda Brillante", "Camina despacio por la arena del fondo marino.", 8f, new Color(0.7f, 1f, 0.7f)),
-        new FishType("Estrella de Mar Mística", "Descansa inmóvil en las profundidades doradas.", 12f, new Color(0.9f, 0.7f, 1f)),
-        new FishType("Caracola del Eco Eterno", "Si te la acercas al oído, puedes oír el canto de las ballenas.", 5f, new Color(1f, 1f, 0.8f)),
-        new FishType("Bota de Cuero Vieja", "Alguien la perdió hace mucho tiempo. Tiene algas pegadas.", 3f, new Color(0.7f, 0.6f, 0.5f))
+        new FishType("Trucha Plateada del Atardecer", "Un pez pacífico que brilla con los últimos rayos de sol.", 15f, new Color(0.9f, 0.9f, 1f), 0.8f),
+        new FishType("Salmón del Alba Serena", "Nada con mucha fuerza contra la corriente del océano.", 20f, new Color(1f, 0.8f, 0.8f), 1.5f),
+        new FishType("Pez de Colores Fantasía", "Pequeño y vivaz, parece sacado de un sueño.", 10f, new Color(1f, 0.9f, 0.6f), 0.7f),
+        new FishType("Cangrejo Esmeralda Brillante", "Camina muy despacio por la arena del fondo marino.", 8f, new Color(0.7f, 1f, 0.7f), 0.4f),
+        new FishType("Estrella de Mar Mística", "Descansa inmóvil en las profundidades doradas del océano.", 12f, new Color(0.9f, 0.7f, 1f), 0.3f),
+        new FishType("Caracola del Eco Eterno", "Si te la acercas al oído, puedes oír el canto de las ballenas.", 5f, new Color(1f, 1f, 0.8f), 0.2f),
+        new FishType("Bota de Cuero Vieja", "Alguien la perdió hace mucho tiempo. Tiene algas pegadas.", 3f, new Color(0.7f, 0.6f, 0.5f), 0.1f)
     };
 
     private void Start()
@@ -80,6 +104,21 @@ public class FishingMinigame : MonoBehaviour
         {
             playerCameraTransform = transform;
         }
+
+        // Initialize colors for custom UI styling
+        greenTexture = CreateColorTexture(new Color(0f, 0.8f, 0.1f, 0.6f));
+        redTexture = CreateColorTexture(new Color(0.9f, 0.1f, 0.1f, 0.8f));
+        yellowTexture = CreateColorTexture(new Color(0.9f, 0.8f, 0f, 0.8f));
+        darkBlueTexture = CreateColorTexture(new Color(0f, 0.05f, 0.1f, 0.85f));
+        grayTexture = CreateColorTexture(new Color(0.15f, 0.15f, 0.15f, 0.9f));
+    }
+
+    private Texture2D CreateColorTexture(Color col)
+    {
+        Texture2D tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, col);
+        tex.Apply();
+        return tex;
     }
 
     private void Update()
@@ -99,23 +138,11 @@ public class FishingMinigame : MonoBehaviour
             }
         }
 
-        // Check if player is near water (on beach / lower altitude)
-        bool isNearWater = transform.position.y < 8.0f;
-
-        // Process inputs
         if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
         {
-            if (isNearWater)
-            {
-                HandleFishingAction();
-            }
-            else if (currentState == FishingState.Idle)
-            {
-                ShowStatus("Debes estar más cerca del mar para pescar...", 3f);
-            }
+            HandleFishingAction();
         }
 
-        // Update active fishing states
         switch (currentState)
         {
             case FishingState.WaitingForBite:
@@ -128,9 +155,8 @@ public class FishingMinigame : MonoBehaviour
                 break;
 
             case FishingState.BiteActive:
-                // Make the bobber submerge and vibrate
-                float vibrate = Mathf.Sin(Time.time * 50f) * 0.05f;
-                UpdateBobberBuoyancy(-0.8f + vibrate);
+                float vibrate = Mathf.Sin(Time.time * 60f) * 0.06f;
+                UpdateBobberBuoyancy(-0.9f + vibrate);
                 
                 stateTimer -= Time.deltaTime;
                 if (stateTimer <= 0f)
@@ -139,15 +165,13 @@ public class FishingMinigame : MonoBehaviour
                 }
                 break;
 
+            case FishingState.MiniGame:
+                UpdateBobberBuoyancy(-1.2f); 
+                UpdateStardewPhysics();
+                break;
+
             case FishingState.Idle:
-                if (isNearWater && activeBobber == null)
-                {
-                    hudMessage = "Presiona [F] para lanzar la caña de pescar";
-                }
-                else
-                {
-                    hudMessage = "";
-                }
+                hudMessage = "Presiona [F] para lanzar el anzuelo en una Zona de Pesca";
                 break;
         }
     }
@@ -161,14 +185,12 @@ public class FishingMinigame : MonoBehaviour
                 break;
 
             case FishingState.WaitingForBite:
-                // Pulled too early
                 ShowStatus("Recogiste el sedal antes de tiempo... El pez huyó.", 3f);
                 ResetToIdle();
                 break;
 
             case FishingState.BiteActive:
-                // Successful catch!
-                ReelInCatch();
+                StartMiniGameStruggle();
                 break;
         }
     }
@@ -189,9 +211,7 @@ public class FishingMinigame : MonoBehaviour
             // Build procedural bobber
             activeBobber = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             activeBobber.name = "Fishing_Bobber";
-            activeBobber.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
-            
-            // Red top
+            activeBobber.transform.localScale = new Vector3(0.28f, 0.28f, 0.28f);
             activeBobber.GetComponent<Renderer>().material.color = Color.red;
 
             // Small white antenna
@@ -203,7 +223,7 @@ public class FishingMinigame : MonoBehaviour
             antenna.GetComponent<Renderer>().material.color = Color.white;
         }
 
-        // Remove active physics collider to prevent issues
+        // Remove active physics collider
         if (activeBobber.TryGetComponent<Collider>(out var col))
         {
             Destroy(col);
@@ -219,19 +239,31 @@ public class FishingMinigame : MonoBehaviour
         }
         else
         {
-            targetPos.y = 3.5f;
+            targetPos.y = 0.5f;
+        }
+
+        // Check if target is inside a valid FishingZone
+        FishingZone[] zones = FindObjectsByType<FishingZone>(FindObjectsSortMode.None);
+        FishingZone hitZone = null;
+        foreach (var zone in zones)
+        {
+            float dist = Vector3.Distance(new Vector3(targetPos.x, zone.transform.position.y, targetPos.z), zone.transform.position);
+            if (dist <= zone.radius)
+            {
+                hitZone = zone;
+                break;
+            }
         }
 
         // Animate flying parabola
-        float duration = 1.2f;
+        float duration = 1.3f;
         float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             Vector3 currentPos = Vector3.Lerp(startPos, targetPos, t);
-            // Parabolic arc
-            currentPos.y += Mathf.Sin(t * Mathf.PI) * 4f;
+            currentPos.y += Mathf.Sin(t * Mathf.PI) * 5f; // Parabolic arc
             
             if (activeBobber != null)
             {
@@ -240,11 +272,26 @@ public class FishingMinigame : MonoBehaviour
             yield return null;
         }
 
-        // Settle on water
-        currentState = FishingState.WaitingForBite;
-        stateTimer = Random.Range(minWaitTime, maxWaitTime);
-        hudMessage = "Espera con paciencia... El sedal flota tranquilo";
-        ShowStatus("...Silencio... El agua se mueve pacíficamente...", 4f);
+        if (hitZone != null)
+        {
+            // Successfully landed in a fishing zone
+            currentZone = hitZone;
+            currentState = FishingState.WaitingForBite;
+            stateTimer = Random.Range(minWaitTime, maxWaitTime);
+            hudMessage = $"Anzuelo en: {currentZone.zoneName.ToUpper()}";
+            ShowStatus($"¡Excelente lanzamiento! Los peces están activos aquí...", 3f);
+        }
+        else
+        {
+            // Missed the zone! Carlos rewinds the rod
+            ShowStatus("No hay peces por aquí...\nDebes lanzar el anzuelo dentro de los círculos activos de agua (Zonas de Pesca).", 4f);
+            if (activeBobber != null)
+            {
+                Destroy(activeBobber);
+                activeBobber = null;
+            }
+            ResetToIdle();
+        }
     }
 
     private void UpdateBobberBuoyancy(float verticalOffset)
@@ -252,7 +299,7 @@ public class FishingMinigame : MonoBehaviour
         if (activeBobber == null) return;
 
         Vector3 pos = activeBobber.transform.position;
-        float waveHeight = 3.5f;
+        float waveHeight = 0.5f;
         if (oceanWaves != null)
         {
             waveHeight = oceanWaves.GetHeight(pos);
@@ -265,8 +312,107 @@ public class FishingMinigame : MonoBehaviour
     {
         currentState = FishingState.BiteActive;
         stateTimer = biteDuration;
-        hudMessage = "¡HA PICADO! ¡Presiona [F] ahora!";
-        ShowStatus("¡El flotador se hunde! ¡Tira de la caña!", biteDuration);
+        hudMessage = "¡HA PICADO! ¡Presiona [F] para luchar!";
+    }
+
+    private void StartMiniGameStruggle()
+    {
+        currentState = FishingState.MiniGame;
+        
+        // Choose random fish from database
+        int fishIdx = Random.Range(0, fishDatabase.Length);
+        currentActiveFish = fishDatabase[fishIdx];
+        fishDifficultyFactor = currentActiveFish.Difficulty;
+
+        // Initialize Stardew Valley variables
+        barY = 0.1f;
+        barVelocity = 0f;
+        fishY = 0.3f;
+        fishTargetY = 0.4f;
+        fishTimer = 0f;
+        catchProgress = 0.35f;
+
+        hudMessage = "¡MANTÉN AL PEZ DENTRO DE LA BARRA VERDE!";
+    }
+
+    private void UpdateStardewPhysics()
+    {
+        // 1. Catcher Bar Physics (Gravity and Thrust Input)
+        float gravity = 3.5f;   // pulling down
+        float thrust = 4.8f;    // pushing up when [F] is held
+        float maxSpeed = 2.2f;
+
+        bool isHoldingF = Keyboard.current != null && Keyboard.current.fKey.isPressed;
+
+        if (isHoldingF)
+        {
+            barVelocity += (thrust - gravity) * Time.deltaTime;
+        }
+        else
+        {
+            barVelocity -= gravity * Time.deltaTime;
+        }
+
+        // Clamp speed
+        barVelocity = Mathf.Clamp(barVelocity, -maxSpeed, maxSpeed);
+        barY += barVelocity * Time.deltaTime;
+
+        // Bounce/Clamp at boundaries
+        if (barY <= barHeight / 2f)
+        {
+            barY = barHeight / 2f;
+            barVelocity = -barVelocity * 0.15f; // Soft bounce
+        }
+        else if (barY >= 1f - barHeight / 2f)
+        {
+            barY = 1f - barHeight / 2f;
+            barVelocity = -barVelocity * 0.15f; // Soft bounce
+        }
+
+        // 2. Fish AI Movement Simulation (Stardew Style)
+        fishTimer -= Time.deltaTime;
+        if (fishTimer <= 0f)
+        {
+            // Choose next position randomly weighted by difficulty
+            fishTargetY = Random.Range(0.05f, 0.95f);
+            fishTimer = Random.Range(0.4f / fishDifficultyFactor, 1.2f / fishDifficultyFactor);
+        }
+
+        // Smoothly approach target Y with some organic noise
+        float activeSpeed = 3.0f * fishDifficultyFactor;
+        fishY = Mathf.MoveTowards(fishY, fishTargetY, activeSpeed * Time.deltaTime);
+
+        // Add small jitter noise for wild fish
+        if (fishDifficultyFactor > 1.0f)
+        {
+            fishY += Mathf.Sin(Time.time * 25f) * 0.004f;
+        }
+        fishY = Mathf.Clamp(fishY, 0.02f, 0.98f);
+
+        // 3. Catch Progress Rules
+        float halfBar = barHeight / 2f;
+        bool isFishInside = (fishY >= barY - halfBar) && (fishY <= barY + halfBar);
+
+        if (isFishInside)
+        {
+            catchProgress += 0.22f * Time.deltaTime; // speed to win
+        }
+        else
+        {
+            catchProgress -= 0.15f * Time.deltaTime; // speed to lose
+        }
+
+        catchProgress = Mathf.Clamp01(catchProgress);
+
+        // Win or Lose checks
+        if (catchProgress >= 1f)
+        {
+            ReelInCatch();
+        }
+        else if (catchProgress <= 0f)
+        {
+            LoseFish();
+        }
     }
 
     private void ReelInCatch()
@@ -274,25 +420,34 @@ public class FishingMinigame : MonoBehaviour
         currentState = FishingState.Reeling;
         hudMessage = "";
 
-        // Choose random fish
-        int fishIdx = Random.Range(0, fishDatabase.Length);
-        FishType caught = fishDatabase[fishIdx];
-
         int caughtSoFar = 1;
-        int required = 3;
+        int required = 12;
         if (GameplayCinematicController.Instance != null)
         {
             caughtSoFar = GameplayCinematicController.Instance.GetFishCaughtCount() + 1;
             required = GameplayCinematicController.Instance.fishRequiredToCatch;
         }
 
-        string successMsg = $"¡Has pescado un {caught.Name.ToUpper()}!\n\n\"{caught.Description}\"\n\n(+{caught.Points} puntos)\n\nProgreso: {caughtSoFar} de {required} peces.";
-        ShowStatus(successMsg, 6f);
+        string successMsg = $"¡Has pescado un {currentActiveFish.Name.ToUpper()}!\n\n\"{currentActiveFish.Description}\"\n\n(+{currentActiveFish.Points} puntos)\n\nProgreso: {caughtSoFar} de {required} peces.";
+
+        // Handle depletion of the fishing zone after 4 fishes are caught in it
+        if (currentZone != null)
+        {
+            bool isDepleted = currentZone.RegisterFishCaught();
+            if (isDepleted)
+            {
+                successMsg += $"\n\n<color=yellow>¡La ({currentZone.zoneName.ToUpper()}) se ha agotado! Busca otra zona activa.</color>";
+                Destroy(currentZone.gameObject);
+                currentZone = null;
+            }
+        }
+
+        ShowStatus(successMsg, 5f);
 
         // Award score
         if (ScoreManager.Instance != null)
         {
-            ScoreManager.Instance.AddScore(caught.Points);
+            ScoreManager.Instance.AddScore(currentActiveFish.Points);
         }
 
         if (GameplayCinematicController.Instance != null)
@@ -300,7 +455,6 @@ public class FishingMinigame : MonoBehaviour
             GameplayCinematicController.Instance.NotifyFishCaught();
         }
 
-        // Visual effects (flash bobber green and destroy)
         StartCoroutine(CatchEffectsCoroutine());
     }
 
@@ -310,7 +464,7 @@ public class FishingMinigame : MonoBehaviour
         {
             var ren = activeBobber.GetComponent<Renderer>();
             if (ren != null) ren.material.color = Color.green;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.4f);
             Destroy(activeBobber);
             activeBobber = null;
         }
@@ -319,7 +473,7 @@ public class FishingMinigame : MonoBehaviour
 
     private void LoseFish()
     {
-        ShowStatus("Se escapó... El mar vuelve a estar en calma.", 3f);
+        ShowStatus("¡Se escapó! El pez luchó con demasiada fuerza.", 3f);
         ResetToIdle();
     }
 
@@ -331,6 +485,7 @@ public class FishingMinigame : MonoBehaviour
             activeBobber = null;
         }
         currentState = FishingState.Idle;
+        currentZone = null;
     }
 
     private void ShowStatus(string message, float duration)
@@ -347,7 +502,6 @@ public class FishingMinigame : MonoBehaviour
         }
     }
 
-    // Modern and elegant screen HUD overlay
     private void OnGUI()
     {
         // 1. Draw top instruction/HUD message
@@ -355,12 +509,12 @@ public class FishingMinigame : MonoBehaviour
         {
             GUIStyle hudStyle = new GUIStyle(GUI.skin.label);
             hudStyle.alignment = TextAnchor.MiddleCenter;
-            hudStyle.fontSize = 22;
+            hudStyle.fontSize = 20;
             hudStyle.fontStyle = FontStyle.Bold;
             hudStyle.normal.textColor = Color.yellow;
 
-            // Shadow
             Rect hudRect = new Rect(0, Screen.height - 180, Screen.width, 40);
+            // Shadow effect
             GUI.Label(new Rect(hudRect.x + 2, hudRect.y + 2, hudRect.width, hudRect.height), hudMessage, new GUIStyle(hudStyle) { normal = { textColor = Color.black } });
             GUI.Label(hudRect, hudMessage, hudStyle);
         }
@@ -368,7 +522,6 @@ public class FishingMinigame : MonoBehaviour
         // 2. Draw card container for statusMessage
         if (!string.IsNullOrEmpty(statusMessage))
         {
-            // Dark elegant background box
             float boxWidth = 550f;
             float boxHeight = 150f;
             float xPos = (Screen.width - boxWidth) / 2f;
@@ -376,31 +529,18 @@ public class FishingMinigame : MonoBehaviour
 
             Rect boxRect = new Rect(xPos, yPos, boxWidth, boxHeight);
             
-            // Texture style for box
-            Texture2D bgTexture = new Texture2D(1, 1);
-            bgTexture.SetPixel(0, 0, new Color(0f, 0.05f, 0.1f, 0.85f)); // Deep dark blue-black transparency
-            bgTexture.Apply();
-
             GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
-            boxStyle.normal.background = bgTexture;
-            
-            // Draw background
+            boxStyle.normal.background = darkBlueTexture;
             GUI.Box(boxRect, GUIContent.none, boxStyle);
 
-            // Draw border
-            Texture2D borderTexture = new Texture2D(1, 1);
-            borderTexture.SetPixel(0, 0, new Color(0.2f, 0.6f, 0.9f, 0.8f)); // Sky blue border
-            borderTexture.Apply();
-            
+            // Sky-blue borders
             GUIStyle borderStyle = new GUIStyle();
-            borderStyle.normal.background = borderTexture;
-            // Left, Right, Top, Bottom borders
+            borderStyle.normal.background = CreateColorTexture(new Color(0.2f, 0.6f, 0.9f, 0.8f));
             GUI.Box(new Rect(boxRect.x, boxRect.y, 3, boxRect.height), GUIContent.none, borderStyle);
             GUI.Box(new Rect(boxRect.x + boxRect.width - 3, boxRect.y, 3, boxRect.height), GUIContent.none, borderStyle);
             GUI.Box(new Rect(boxRect.x, boxRect.y, boxRect.width, 3), GUIContent.none, borderStyle);
             GUI.Box(new Rect(boxRect.x, boxRect.y + boxRect.height - 3, boxRect.width, 3), GUIContent.none, borderStyle);
 
-            // Text layout
             GUIStyle textStyle = new GUIStyle(GUI.skin.label);
             textStyle.alignment = TextAnchor.MiddleCenter;
             textStyle.fontSize = 18;
@@ -409,6 +549,82 @@ public class FishingMinigame : MonoBehaviour
 
             Rect textRect = new Rect(boxRect.x + 20, boxRect.y + 15, boxRect.width - 40, boxRect.height - 30);
             GUI.Label(textRect, statusMessage, textStyle);
+        }
+
+        // 3. Draw Stardew Valley Fishing Minigame Interface
+        if (currentState == FishingState.MiniGame)
+        {
+            // Container Panel background
+            float panelWidth = 140f;
+            float panelHeight = 360f;
+            float panelX = Screen.width - panelWidth - 40f;
+            float panelY = (Screen.height - panelHeight) / 2f;
+
+            Rect panelRect = new Rect(panelX, panelY, panelWidth, panelHeight);
+            GUIStyle panelStyle = new GUIStyle(GUI.skin.box);
+            panelStyle.normal.background = darkBlueTexture;
+            GUI.Box(panelRect, GUIContent.none, panelStyle);
+
+            // Title label
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
+            titleStyle.alignment = TextAnchor.MiddleCenter;
+            titleStyle.fontSize = 13;
+            titleStyle.fontStyle = FontStyle.Bold;
+            titleStyle.normal.textColor = Color.yellow;
+            GUI.Label(new Rect(panelRect.x, panelRect.y + 10, panelWidth, 20), "PESCANDO...", titleStyle);
+
+            // Sub-instruction
+            GUIStyle keyStyle = new GUIStyle(GUI.skin.label);
+            keyStyle.alignment = TextAnchor.MiddleCenter;
+            keyStyle.fontSize = 10;
+            keyStyle.normal.textColor = Color.white;
+            GUI.Label(new Rect(panelRect.x + 5, panelRect.y + 30, panelWidth - 10, 30), "Mantén [F] sube\nSuelta [F] baja", keyStyle);
+
+            // The main vertical tube/slider area
+            Rect tubeRect = new Rect(panelRect.x + 25, panelRect.y + 70, 35, 260);
+            GUIStyle tubeStyle = new GUIStyle(GUI.skin.box);
+            tubeStyle.normal.background = grayTexture;
+            GUI.Box(tubeRect, GUIContent.none, tubeStyle);
+
+            // Catcher Bar (Green Box)
+            float normCatcherHeight = barHeight * tubeRect.height;
+            float normCatcherY = tubeRect.y + (tubeRect.height - (barY * tubeRect.height) - normCatcherHeight / 2f);
+            
+            // Soft limits clamping for display
+            normCatcherY = Mathf.Clamp(normCatcherY, tubeRect.y, tubeRect.y + tubeRect.height - normCatcherHeight);
+            
+            Rect catcherRect = new Rect(tubeRect.x, normCatcherY, tubeRect.width, normCatcherHeight);
+            GUIStyle catcherStyle = new GUIStyle(GUI.skin.box);
+            catcherStyle.normal.background = greenTexture;
+            GUI.Box(catcherRect, GUIContent.none, catcherStyle);
+
+            // Fish Marker (Orange/Gold square inside the tube)
+            float normFishY = tubeRect.y + (tubeRect.height - (fishY * tubeRect.height) - 10f);
+            normFishY = Mathf.Clamp(normFishY, tubeRect.y, tubeRect.y + tubeRect.height - 20f);
+            
+            Rect fishRect = new Rect(tubeRect.x + 6, normFishY, tubeRect.width - 12, 20);
+            GUIStyle fishVisualStyle = new GUIStyle(GUI.skin.box);
+            fishVisualStyle.normal.background = yellowTexture;
+            fishVisualStyle.alignment = TextAnchor.MiddleCenter;
+            fishVisualStyle.fontSize = 12;
+            GUI.Box(fishRect, "🐟", fishVisualStyle);
+
+            // Progress Bar (Right side of the tube)
+            Rect progBackgroundRect = new Rect(tubeRect.xMax + 12, tubeRect.y, 10, tubeRect.height);
+            GUI.Box(progBackgroundRect, GUIContent.none, tubeStyle);
+
+            float progFillHeight = catchProgress * tubeRect.height;
+            float progFillY = progBackgroundRect.y + (progBackgroundRect.height - progFillHeight);
+            Rect progFillRect = new Rect(progBackgroundRect.x, progFillY, progBackgroundRect.width, progFillHeight);
+
+            // Choose color of progress dynamically
+            Texture2D progressColorTex = redTexture;
+            if (catchProgress > 0.65f) progressColorTex = greenTexture;
+            else if (catchProgress > 0.3f) progressColorTex = yellowTexture;
+
+            GUIStyle progressStyle = new GUIStyle(GUI.skin.box);
+            progressStyle.normal.background = progressColorTex;
+            GUI.Box(progFillRect, GUIContent.none, progressStyle);
         }
     }
 }
