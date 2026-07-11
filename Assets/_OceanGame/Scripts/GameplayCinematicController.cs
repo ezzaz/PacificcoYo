@@ -39,6 +39,10 @@ public class GameplayCinematicController : MonoBehaviour
     private Vector3 originalLocalCamPos;
     private Quaternion originalLocalCamRot;
 
+    [Header("Customizable Camera Sweeps (Empty GameObjects)")]
+    public Transform startCinematicAnchor;
+    public Transform endCinematicAnchor;
+
     private bool dialogueFinishedStarting = false;
     private bool isPlayingStartCinematic = false;
     private bool isPlayingEndCinematic = false;
@@ -213,67 +217,20 @@ public class GameplayCinematicController : MonoBehaviour
             AddLine("Carlos", "Ahora debo colocar los 3 pescados dentro de la cesta del barco para guardarlos bien.", false);
             AddLine("Carlos", "Puedo tomarlos con [E] y dejarlos caer dentro de la cesta.", false);
 
-            if (mainCamera != null)
-            {
-                mainCamera.transform.parent = null;
-                
-                // Sweeping shot showing dock and basket
-                cinematicStartPos = new Vector3(235f, 5f, 175f);
-                cinematicStartRot = Quaternion.Euler(15f, 45f, 0f);
-                
-                if (cameraParent != null)
-                {
-                    cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
-                    cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
-                }
-                else
-                {
-                    cinematicTargetPos = new Vector3(251.14f, 1.5f, 182.15f);
-                    cinematicTargetRot = Quaternion.identity;
-                }
+            }
 
+            // Apply customizable empty camera anchor override if assigned
+            if (mainCamera != null && startCinematicAnchor != null)
+            {
+                cinematicStartPos = startCinematicAnchor.position;
+                cinematicStartRot = startCinematicAnchor.rotation;
                 mainCamera.transform.position = cinematicStartPos;
                 mainCamera.transform.rotation = cinematicStartRot;
-                cinematicProgress = 0f;
-                cinematicDuration = 8f;
             }
+
+            dialogosSystem.StartDialogue();
+            dialogueFinishedStarting = true;
         }
-        else if (currentLevel == LevelType.Minijuego4)
-        {
-            AddLine("Carlos", "Bien, he puesto los peces sobre la mesa de selección.", false);
-            AddLine("Carlos", "Debemos cuidar el mar. Es importante clasificar nuestra pesca del día con responsabilidad.", false);
-            AddLine("Carlos", "Debo devolver al océano a los peces muy pequeños para que sigan creciendo, y clasificar como basura los residuos plásticos para reciclarlos.", false);
-            AddLine("Carlos", "Hagamos clic con el ratón sobre cada objeto en la mesa para inspeccionarlo y decidir qué hacer con él.", false);
-
-            if (mainCamera != null)
-            {
-                mainCamera.transform.parent = null;
-                
-                // Slow beautiful sweep from high above the dock looking down at the table on the boat
-                cinematicStartPos = new Vector3(245f, 12f, 195f);
-                cinematicStartRot = Quaternion.Euler(20f, -40f, 0f);
-                
-                if (cameraParent != null)
-                {
-                    cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
-                    cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
-                }
-                else
-                {
-                    cinematicTargetPos = new Vector3(251.14f, 1.5f, 182.15f);
-                    cinematicTargetRot = Quaternion.identity;
-                }
-
-                mainCamera.transform.position = cinematicStartPos;
-                mainCamera.transform.rotation = cinematicStartRot;
-                cinematicProgress = 0f;
-                cinematicDuration = 10f; // nice 10s sweeping start
-            }
-        }
-
-        dialogosSystem.StartDialogue();
-        dialogueFinishedStarting = true;
-    }
 
     private void AddLine(string charName, string text, bool isRight)
     {
@@ -476,25 +433,25 @@ public class GameplayCinematicController : MonoBehaviour
             }
 
             mainCamera.transform.parent = null;
-            if (currentLevel == LevelType.Minijuego1)
+
+            if (endCinematicAnchor != null)
             {
-                mainCamera.transform.position = new Vector3(20f, 15f, 100f);
-                mainCamera.transform.rotation = Quaternion.Euler(12f, 25f, 0f);
+                mainCamera.transform.position = endCinematicAnchor.position;
+                mainCamera.transform.rotation = endCinematicAnchor.rotation;
             }
-            else if (currentLevel == LevelType.Minijuego2)
+            else
             {
-                mainCamera.transform.position = new Vector3(150f, 12f, 340f);
-                mainCamera.transform.rotation = Quaternion.Euler(10f, 40f, 0f);
-            }
-            else if (currentLevel == LevelType.Minijuego3)
-            {
-                mainCamera.transform.position = new Vector3(230f, 8f, 170f);
-                mainCamera.transform.rotation = Quaternion.Euler(8f, 50f, 0f);
-            }
-            else if (currentLevel == LevelType.Minijuego4)
-            {
-                mainCamera.transform.position = new Vector3(255f, 15f, 185f);
-                mainCamera.transform.rotation = Quaternion.Euler(20f, -80f, 0f);
+                // Fallbacks
+                if (currentLevel == LevelType.Minijuego1)
+                {
+                    mainCamera.transform.position = new Vector3(20f, 15f, 100f);
+                    mainCamera.transform.rotation = Quaternion.Euler(12f, 25f, 0f);
+                }
+                else if (currentLevel == LevelType.Minijuego2)
+                {
+                    mainCamera.transform.position = new Vector3(150f, 12f, 340f);
+                    mainCamera.transform.rotation = Quaternion.Euler(10f, 40f, 0f);
+                }
             }
         }
 
@@ -525,20 +482,8 @@ public class GameplayCinematicController : MonoBehaviour
             }
             else if (currentLevel == LevelType.Minijuego2)
             {
-                AddLine("Carlos", "¡Excelente pesca! Con estos 3 pescados tenemos más que suficiente para cenar rico y fresco.", false);
-                AddLine("Carlos", "Regresemos al muelle para guardarlos a salvo.", false);
-            }
-            else if (currentLevel == LevelType.Minijuego3)
-            {
-                AddLine("Carlos", "¡Listo! Todos los pescados están a salvo en la cesta.", false);
-                AddLine("Carlos", "Ha sido un día maravilloso de paz, contemplando la inmensidad del océano.", false);
-                AddLine("Carlos", "Es hora de descansar y disfrutar de una hermosa noche.", false);
-            }
-            else if (currentLevel == LevelType.Minijuego4)
-            {
-                AddLine("Carlos", "¡Perfecto! Hemos clasificado con éxito toda la pesca de hoy de manera sostenible.", false);
-                AddLine("Carlos", "El océano nos provee, y es nuestro deber sagrado cuidarlo y respetarlo de vuelta.", false);
-                AddLine("Carlos", "Ha sido una jornada maravillosa. Descansemos y preparemos todo para el mañana.", false);
+                AddLine("Carlos", "¡Excelente pesca! Con estos peces tenemos más que suficiente para cenar rico y fresco.", false);
+                AddLine("Carlos", "Regresemos al muelle para celebrar un hermoso día.", false);
             }
 
             dialogosSystem.StartDialogue();
@@ -567,14 +512,6 @@ public class GameplayCinematicController : MonoBehaviour
             SceneManager.LoadScene("Minijuego2");
         }
         else if (currentLevel == LevelType.Minijuego2)
-        {
-            SceneManager.LoadScene("Minijuego3");
-        }
-        else if (currentLevel == LevelType.Minijuego3)
-        {
-            SceneManager.LoadScene("Minijuego4");
-        }
-        else if (currentLevel == LevelType.Minijuego4)
         {
             SceneManager.LoadScene("Creditos");
         }

@@ -1360,6 +1360,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FishingZone
   radius: 15
   zoneName: Aguas del Atardecer
+  maxFishes: 4
 --- !u!4 &422182902
 Transform:
   m_ObjectHideFlags: 0
@@ -1369,7 +1370,7 @@ Transform:
   m_GameObject: {fileID: 422182900}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 135, y: 0, z: 335}
+  m_LocalPosition: {x: 50, y: 0, z: 360}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2995,59 +2996,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d0537cfc2b1178a43a1929e9b3b89bb6, type: 3}
---- !u!1 &1019112720
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1019112721}
-  - component: {fileID: 1019112722}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1019112721
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1019112720}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.91, z: 4.936}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1201303893}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1019112722
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1019112720}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 3.16, y: 2.53, z: 2.66}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!21 &1123355989
 Material:
   serializedVersion: 8
@@ -3313,6 +3261,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FishingZone
   radius: 15
   zoneName: Zona del Banco Dorado
+  maxFishes: 4
 --- !u!4 &1155806754
 Transform:
   m_ObjectHideFlags: 0
@@ -3322,7 +3271,7 @@ Transform:
   m_GameObject: {fileID: 1155806752}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 185, y: 0, z: 395}
+  m_LocalPosition: {x: 170, y: 0, z: 490}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3489,6 +3438,21 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &1329454657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1329454648}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe33fd0368f52da4e9af872dcc6177ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OceanBoundaryTrigger
+  maxDistance: 210
+  centerPosition: {x: 170.8, y: 0, z: 363.2}
+  warningCooldown: 6
 --- !u!1 &1337799505
 GameObject:
   m_ObjectHideFlags: 0
@@ -3647,6 +3611,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FishingZone
   radius: 15
   zoneName: Muelle de los Cangrejos
+  maxFishes: 4
 --- !u!4 &1374085092
 Transform:
   m_ObjectHideFlags: 0
@@ -3656,7 +3621,7 @@ Transform:
   m_GameObject: {fileID: 1374085090}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 215, y: 0, z: 325}
+  m_LocalPosition: {x: 290, y: 0, z: 360}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3881,7 +3846,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1465803461}
-  - component: {fileID: 1465803460}
   - component: {fileID: 1465803462}
   m_Layer: 0
   m_Name: GameManager
@@ -3890,18 +3854,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1465803460
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1465803459}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0564d73aef6c93645bcf7f61cb7280d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &1465803461
 Transform:
   m_ObjectHideFlags: 0
@@ -3934,6 +3886,8 @@ MonoBehaviour:
   fishRequiredToCatch: 3
   fishRequiredInBasket: 3
   fishPrefab: {fileID: 0}
+  startCinematicAnchor: {fileID: 0}
+  endCinematicAnchor: {fileID: 0}
 --- !u!1 &1515318733
 GameObject:
   m_ObjectHideFlags: 0
@@ -4077,6 +4031,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FishingZone
   radius: 15
   zoneName: Fondo Coralino
+  maxFishes: 4
 --- !u!4 &1518823861
 Transform:
   m_ObjectHideFlags: 0
@@ -4086,7 +4041,7 @@ Transform:
   m_GameObject: {fileID: 1518823859}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 115, y: 0, z: 415}
+  m_LocalPosition: {x: 90, y: 0, z: 475}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4243,7 +4198,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FishingZone
   radius: 15
-  zoneName: "Bah\xEDa de las Estrellas"
+  zoneName: Bahia de las Estrellas
+  maxFishes: 4
 --- !u!4 &1648735278
 Transform:
   m_ObjectHideFlags: 0
@@ -4253,7 +4209,7 @@ Transform:
   m_GameObject: {fileID: 1648735276}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 225, y: 0, z: 425}
+  m_LocalPosition: {x: 250, y: 0, z: 475}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4442,13 +4398,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3244018984251977201, guid: 4d80c7da36c547c42a9286647609d379, type: 3}
       insertIndex: 0
       addedObject: {fileID: 1824600372}
-    - targetCorrespondingSourceObject: {fileID: 3244018984251977201, guid: 4d80c7da36c547c42a9286647609d379, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1019112721}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3244018984251683281, guid: 4d80c7da36c547c42a9286647609d379, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1329454656}
+    - targetCorrespondingSourceObject: {fileID: 3244018984251683281, guid: 4d80c7da36c547c42a9286647609d379, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1329454657}
   m_SourcePrefab: {fileID: 100100000, guid: 4d80c7da36c547c42a9286647609d379, type: 3}
 --- !u!1 &1724819493
 GameObject:

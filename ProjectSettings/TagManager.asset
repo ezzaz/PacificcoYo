@@ -9,6 +9,11 @@ TagManager:
   - Box1
   - Box2
   - Box3
+  - Mat_Battery
+  - Mat_Cable
+  - Mat_Gears
+  - Mat_Fuel
+  - MotorRepaired
   layers:
   - Default
   - TransparentFX

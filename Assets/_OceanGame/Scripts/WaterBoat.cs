@@ -1,4 +1,4 @@
-﻿using Ditzelgames;
+using Ditzelgames;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -42,6 +42,11 @@ public class WaterBoat : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        FishingMinigame fishing = GetComponent<FishingMinigame>();
+        if (fishing != null && fishing.IsFishingActive())
+        {
+            moveInput = Vector2.zero;
+        }
         Moverse();
     }
     public void OnMovement(InputValue value)
