@@ -1,0 +1,59 @@
+[33mcommit c77f30691b3906d468b3ebdf8d62bcf8ab4982d2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmi-trabajo-recuperado[m[33m)[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sun Jul 12 19:17:58 2026 -0400
+
+    solop
+
+[33mcommit 0d8cec61db5929286e6cd21acc04965f50ef020a[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sun Jul 12 16:52:40 2026 -0400
+
+    Reapply "12e4"
+    
+    This reverts commit a1766d8ed3cd0fa70b04fa920307bb0a403da374.
+
+[33mcommit a1766d8ed3cd0fa70b04fa920307bb0a403da374[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sun Jul 12 16:46:56 2026 -0400
+
+    Revert "12e4"
+    
+    This reverts commit 767754f19afa6c704b4021db2ec88b8c98994916.
+
+[33mcommit becfaf7b5aefd9b499f36387c14b1e57d6595875[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sun Jul 12 16:44:15 2026 -0400
+
+    eso
+
+[33mcommit 767754f19afa6c704b4021db2ec88b8c98994916[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sat Jul 11 00:28:47 2026 -0400
+
+    12e4
+
+[33mcommit ac569479d163c38951ec4bdbd00ab33e86c5c2d4[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Mon Jul 6 16:06:56 2026 -0400
+
+    as
+    
+    fddas
+
+[33mcommit 44be4a11f4a3df9b62b41cb416899ec25e38f89d[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Sun Jun 28 17:19:59 2026 -0400
+
+    Cambios
+
+[33mcommit 0d6677fcc90a44a4cbe85bd13c452e895bfe8d94[m
+Author: ezzaz <renato12345pinochet@gmail.com>
+Date:   Tue Jun 23 14:47:49 2026 -0400
+
+    Prueba1
+
+[33mcommit 8d1fe45adb674135266d018d62842e96ca1e687b[m
+Author: ezzaz <88692879+ezzaz@users.noreply.github.com>
+Date:   Tue Jun 23 14:43:39 2026 -0400
+
+    Initial commit

@@ -1,0 +1,24 @@
+# Blender 4.5.11 LTS MTL File: 'Tree_Pack.blend'
+# www.blender.org
+
+newmtl Tree_Branches_01
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd Tree_Branches_1_Diffuse.png
+map_Ns Tree_Branches_Roughness.png
+map_d Tree_Branches_1_Opacity.png
+map_Bump -bm 1.000000 Tree_Branches_Normal.png
+
+newmtl Tree_Trunk_01
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Ns Tree_Trunk_01_Roughness.png
+map_Bump -bm 1.000000 Tree_Trunk_01_Normal.png
