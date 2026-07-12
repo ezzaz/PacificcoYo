@@ -28,11 +28,6 @@ public class FishingMinigame : MonoBehaviour
     private float stateTimer = 0f;
     private GameObject activeBobber;
     private Waves oceanWaves;
-
-    public bool IsFishingActive()
-    {
-        return currentState != FishingState.Idle;
-    }
     private Transform playerCameraTransform;
 
     // Fishing Zones
@@ -41,7 +36,7 @@ public class FishingMinigame : MonoBehaviour
     // Stardew Valley Minigame State Variables
     private float barY = 0.1f; // 0 (bottom) to 1 (top)
     private float barVelocity = 0f;
-    private float barHeight = 0.5f; // height of green catcher bar (normalized)
+    private float barHeight = 0.22f; // height of green catcher bar (normalized)
     private float fishY = 0.4f; // 0 to 1
     private float fishTargetY = 0.5f;
     private float fishTimer = 0f;
@@ -522,6 +517,38 @@ public class FishingMinigame : MonoBehaviour
             // Shadow effect
             GUI.Label(new Rect(hudRect.x + 2, hudRect.y + 2, hudRect.width, hudRect.height), hudMessage, new GUIStyle(hudStyle) { normal = { textColor = Color.black } });
             GUI.Label(hudRect, hudMessage, hudStyle);
+        }
+
+        // 2. Draw card container for statusMessage
+        if (!string.IsNullOrEmpty(statusMessage))
+        {
+            float boxWidth = 550f;
+            float boxHeight = 150f;
+            float xPos = (Screen.width - boxWidth) / 2f;
+            float yPos = (Screen.height - boxHeight) / 2.5f;
+
+            Rect boxRect = new Rect(xPos, yPos, boxWidth, boxHeight);
+            
+            GUIStyle boxStyle = new GUIStyle(GUI.skin.box);
+            boxStyle.normal.background = darkBlueTexture;
+            GUI.Box(boxRect, GUIContent.none, boxStyle);
+
+            // Sky-blue borders
+            GUIStyle borderStyle = new GUIStyle();
+            borderStyle.normal.background = CreateColorTexture(new Color(0.2f, 0.6f, 0.9f, 0.8f));
+            GUI.Box(new Rect(boxRect.x, boxRect.y, 3, boxRect.height), GUIContent.none, borderStyle);
+            GUI.Box(new Rect(boxRect.x + boxRect.width - 3, boxRect.y, 3, boxRect.height), GUIContent.none, borderStyle);
+            GUI.Box(new Rect(boxRect.x, boxRect.y, boxRect.width, 3), GUIContent.none, borderStyle);
+            GUI.Box(new Rect(boxRect.x, boxRect.y + boxRect.height - 3, boxRect.width, 3), GUIContent.none, borderStyle);
+
+            GUIStyle textStyle = new GUIStyle(GUI.skin.label);
+            textStyle.alignment = TextAnchor.MiddleCenter;
+            textStyle.fontSize = 18;
+            textStyle.wordWrap = true;
+            textStyle.normal.textColor = Color.white;
+
+            Rect textRect = new Rect(boxRect.x + 20, boxRect.y + 15, boxRect.width - 40, boxRect.height - 30);
+            GUI.Label(textRect, statusMessage, textStyle);
         }
 
         // 3. Draw Stardew Valley Fishing Minigame Interface

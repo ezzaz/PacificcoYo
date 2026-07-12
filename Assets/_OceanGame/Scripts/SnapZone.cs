@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SnapZone : MonoBehaviour
 {
-    [Header("Lugar exacto donde quedara la caja")]
+    [Header("Lugar exacto donde quedará la caja")]
     public Transform snapPoint;
 
     [Header("Tag que debe tener la caja")]
@@ -17,7 +17,7 @@ public class SnapZone : MonoBehaviour
 
         if (other.CompareTag(objectTag))
         {
-            // Colocar en la posicion exacta
+            // Colocar en la posición exacta
             other.transform.position = snapPoint.position;
             other.transform.rotation = snapPoint.rotation;
 
@@ -41,17 +41,7 @@ public class SnapZone : MonoBehaviour
 
             ocupado = true;
 
-            // Notify MotorRepairPuzzle if active
-            if (MotorRepairPuzzle.Instance != null)
-            {
-                MotorRepairPuzzle.Instance.CheckRepairProgress();
-            }
-
-            // Notify PuzzleManager if active
-            if (PuzzleManager.Instance != null)
-            {
-                PuzzleManager.Instance.ComprobarPuzzle();
-            }
+            PuzzleManager.Instance.ComprobarPuzzle();
         }
     }
 }

@@ -4,8 +4,5 @@
     "GitInstanceTypeValue": 0,
     "CustomGitPath": "",
     "CheckpointRetentionWeeks": 2,
-    "PlanExecutionPromptDismissed": false,
-    "CheckpointDiscoveryBannerDismissed": false,
-    "CheckpointDiscoveryUserDisabled": false,
-    "CheckpointDiscoveryFlowStarted": true
+    "PlanExecutionPromptDismissed": false
 }

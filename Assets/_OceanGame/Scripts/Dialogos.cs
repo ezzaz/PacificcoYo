@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 
 public class Dialogos : MonoBehaviour
 {
-    [Header("UI Elements (Deactivated for 3D Text)")]
+    [Header("UI Elements")]
     [SerializeField] private GameObject dialoguePanel;
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private TMP_Text characterNameText;
@@ -18,6 +18,7 @@ public class Dialogos : MonoBehaviour
     public AudioSource audioSource;
     public bool parteAbierto;
     public bool esCinematica;
+    
 
     [Header("Dialogue Data")]
     public List<DialogueLine> dialogueLines = new List<DialogueLine>();
@@ -25,29 +26,14 @@ public class Dialogos : MonoBehaviour
     private bool isPlayerInRange;
     private bool didDialogueStart;
     public int lineIndex;
-    private float typingTime = 0.04f;
-
-    // 3D floating text references
-    private GameObject active3DTextObject;
-    private TextMeshPro active3DText;
-    private string simulatedText = ""; // Keeps dialogueText.text logic working in memory
+    private float typingTime = 0.05f;
 
     private void Start()
     {
-        // Force hide 2D canvas UI panels so only 3D text is visible
-        Hide2DPanels();
-
         if (parteAbierto)
         {
             StartDialogue();
         }
-    }
-
-    private void Hide2DPanels()
-    {
-        if (dialoguePanel != null) dialoguePanel.SetActive(false);
-        if (rightPanel != null) rightPanel.SetActive(false);
-        if (leftPanel != null) leftPanel.SetActive(false);
     }
 
     public bool IsDialogueActive()
@@ -61,20 +47,14 @@ public class Dialogos : MonoBehaviour
         {
             if (didDialogueStart)
             {
-                // If the text is fully typed, advance. If not, autocomplete instantly.
-                if (simulatedText == dialogueLines[lineIndex].text)
+                if (dialogueText.text == dialogueLines[lineIndex].text)
                 {
                     NextDialogueLine();
                 }
                 else
                 {
                     StopAllCoroutines();
-                    simulatedText = dialogueLines[lineIndex].text;
-                    if (active3DText != null)
-                    {
-                        active3DText.text = simulatedText;
-                        active3DText.color = new Color(active3DText.color.r, active3DText.color.g, active3DText.color.b, 1f);
-                    }
+                    dialogueText.text = dialogueLines[lineIndex].text;
                 }
             }
             else if (!esCinematica && isPlayerInRange)
@@ -87,7 +67,7 @@ public class Dialogos : MonoBehaviour
     public void StartDialogue()
     {
         didDialogueStart = true;
-        Hide2DPanels();
+        dialoguePanel.SetActive(true);
 
         lineIndex = 0;
         StartCoroutine(ShowLine());
@@ -95,10 +75,6 @@ public class Dialogos : MonoBehaviour
 
     private void NextDialogueLine()
     {
-        // Let the current text object float up and fade out on its own (handled by FloatingText3D)
-        active3DTextObject = null;
-        active3DText = null;
-
         lineIndex++;
         if (lineIndex < dialogueLines.Count)
         {
@@ -107,58 +83,54 @@ public class Dialogos : MonoBehaviour
         else
         {
             didDialogueStart = false;
+            leftPanel.SetActive(false);
+            rightPanel.SetActive(false);
+            dialoguePanel.SetActive(false);
         }
     }
 
     private IEnumerator ShowLine()
     {
-        Hide2DPanels();
+        // Set character name and image
+        characterNameText.text = dialogueLines[lineIndex].characterName;
 
-        // 1. Play dialogue sound
-        if (audioSource != null && dialogueLines[lineIndex].nextDialogueSound != null)
+        if (dialogueLines[lineIndex].isRightSpeaker)
         {
-            audioSource.PlayOneShot(dialogueLines[lineIndex].nextDialogueSound);
+            rightPanel.SetActive(true);
+            if (audioSource != null && dialogueLines[lineIndex].nextDialogueSound != null)
+            {
+                audioSource.PlayOneShot(dialogueLines[lineIndex].nextDialogueSound);
+            }
+            leftPanel.SetActive(false);
+            if (rightCharacterImage != null)
+            {
+                rightCharacterImage.sprite = dialogueLines[lineIndex].characterImage;
+            }
+        }
+        else
+        {
+            leftPanel.SetActive(true);
+            rightPanel.SetActive(false);
+            if (leftCharacterImage != null)
+            {
+                leftCharacterImage.sprite = dialogueLines[lineIndex].characterImage;
+            }
+            if (audioSource != null && dialogueLines[lineIndex].nextDialogueSound != null)
+            {
+                audioSource.PlayOneShot(dialogueLines[lineIndex].nextDialogueSound);
+            }
         }
 
-        // 2. Create a new Edith Finch-style 3D floating text object
-        if (active3DTextObject != null)
-        {
-            // Abandon previous to let it float off
-            active3DTextObject = null;
-        }
+        dialogueText.text = string.Empty;
 
-        active3DTextObject = new GameObject("FloatingDialogue_3D");
-        active3DText = active3DTextObject.AddComponent<TextMeshPro>();
-        
-        // Exquisite Edith Finch look & feel
-        active3DText.alignment = TextAlignmentOptions.Center;
-        active3DText.fontSize = 5.5f;
-        active3DText.color = new Color(1f, 0.95f, 0.7f, 0f); // Soft vanilla
-        active3DText.outlineWidth = 0.16f;
-        active3DText.outlineColor = new Color(0f, 0f, 0f, 0.85f);
-
-        // Add drifting physics
-        FloatingText3D drift = active3DTextObject.AddComponent<FloatingText3D>();
-        drift.textToShow = dialogueLines[lineIndex].text;
-        drift.followCamera = true; // Floating floating right on player's side
-        drift.displayDuration = 99f; // Keep alive until we manually destroy/advance it
-        drift.typingSpeed = typingTime;
-        drift.followOffset = new Vector3(0f, 0.3f, 3.2f); // Centered, slightly lower, beautiful position
-        drift.driftDirection = new Vector3(0.02f, 0.1f, -0.02f); // very gentle float
-
-        simulatedText = "";
-        dialogueText.text = ""; // Keep references happy
-
-        // Type character-by-character to mirror in our simulated text
         foreach (char ch in dialogueLines[lineIndex].text)
         {
-            simulatedText += ch;
-            dialogueText.text = simulatedText;
+            dialogueText.text += ch;
             yield return new WaitForSecondsRealtime(typingTime);
         }
     }
 
-    // 3D triggers
+    // 3D triggers (for Minijuego 1 and 3)
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -175,6 +147,7 @@ public class Dialogos : MonoBehaviour
         }
     }
 
+    // 2D triggers (legacy / fallback)
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
