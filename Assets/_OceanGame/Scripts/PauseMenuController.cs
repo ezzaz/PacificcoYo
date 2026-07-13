@@ -24,7 +24,10 @@ public class PauseMenuController : MonoBehaviour
     public RectTransform buttonsContainer;
     [Tooltip("Volume global con el perfil de desenfoque (PauseBlurProfile).")]
     public Volume blurVolume;
-
+    [Tooltip("AudioSource para reproducir el sonido al abrir el menú.")]
+    public AudioSource pauseAudioSource;
+    [Tooltip("Clip de sonido al abrir pausa.")]
+    public AudioClip pauseOpenSound;
     [Header("Colocación de la libreta frente a la cámara")]
     [Tooltip("Distancia de la libreta respecto a la cámara (metros).")]
     public float notebookDistance = 0.5f;
@@ -93,6 +96,10 @@ public class PauseMenuController : MonoBehaviour
                 prevPostProcessing = camData.renderPostProcessing;
                 camData.renderPostProcessing = true; // necesario para el blur
             }
+        }
+        if (pauseAudioSource != null && pauseOpenSound != null)
+        {
+            pauseAudioSource.PlayOneShot(pauseOpenSound);
         }
 
         if (blurVolume != null) blurVolume.enabled = true;
