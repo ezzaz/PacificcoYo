@@ -140,7 +140,6 @@ public class Dialogos : MonoBehaviour
         // Add drifting physics
         FloatingText3D drift = active3DTextObject.AddComponent<FloatingText3D>();
         drift.textToShow = dialogueLines[lineIndex].text;
-        drift.followCamera = true; // Floating floating right on player's side
         drift.displayDuration = 99f; // Keep alive until we manually destroy/advance it
         drift.typingSpeed = typingTime;
         drift.followOffset = new Vector3(0f, 0.3f, 3.2f); // Centered, slightly lower, beautiful position
