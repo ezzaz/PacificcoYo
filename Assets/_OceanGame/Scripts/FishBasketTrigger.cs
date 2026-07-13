@@ -28,10 +28,7 @@ public class FishBasketTrigger : MonoBehaviour
                 audio.Play();
             }
 
-            if (GameplayCinematicController.Instance != null)
-            {
-                GameplayCinematicController.Instance.NotifyFishPlacedInBasket();
-            }
+       
         }
     }
 }

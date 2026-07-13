@@ -21,10 +21,7 @@ public class GameplayCinematicController : MonoBehaviour
     public int fishRequiredToCatch = 12;
     private int fishCaughtCount = 0;
 
-    [Header("Minijuego 3 Settings (Fish Basket)")]
-    public int fishRequiredInBasket = 6;
-    private int fishInBasketCount = 0;
-    public GameObject fishPrefab; // We'll spawn these automatically if not null
+   
 
     private Dialogos dialogosSystem;
     private PlayerMovement playerMove;
@@ -132,25 +129,41 @@ public class GameplayCinematicController : MonoBehaviour
         }
 
         isPlayingStartCinematic = true;
-        DisableControls();
 
         dialogosSystem.dialogueLines.Clear();
 
         if (currentLevel == LevelType.Minijuego1)
         {
-            // Cámara se queda quieta, sin movimiento
-            if (mainCamera != null)
-            {
-                mainCamera.transform.parent = null; // detach
-            }
+            // Minijuego 1: sin limitaciones, el jugador puede moverse libremente
         }
         else if (currentLevel == LevelType.Minijuego2)
         {
+            DisableControls();
+
             if (mainCamera != null)
             {
                 mainCamera.transform.parent = null;
+
+                // Low sweeping angle from the ocean waves looking up at the boat
+                Vector3 cinematicStartPos = new Vector3(140f, 1f, 320f);
+                Quaternion cinematicStartRot = Quaternion.Euler(-5f, 25f, 0f);
+
+                if (cameraParent != null)
+                {
+                    Vector3 cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
+                    Quaternion cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
+                }
+                else
+                {
+                    Vector3 cinematicTargetPos = new Vector3(170.80f, 2.0f, 363.20f);
+                    Quaternion cinematicTargetRot = Quaternion.identity;
+                }
+
+                mainCamera.transform.position = cinematicStartPos;
+                mainCamera.transform.rotation = cinematicStartRot;
             }
         }
+
         dialogosSystem.StartDialogue();
         dialogueFinishedStarting = true;
     }
@@ -181,7 +194,11 @@ public class GameplayCinematicController : MonoBehaviour
                 mainCamera.transform.localRotation = originalLocalCamRot;
             }
 
-            EnableControls();
+            if (currentLevel == LevelType.Minijuego2)
+            {
+                EnableControls();
+            }
+
             OnStartCinematicFinished();
         }
         else if (isPlayingEndCinematic && (dialogosSystem == null || !dialogosSystem.IsDialogueActive()))
@@ -220,70 +237,14 @@ public class GameplayCinematicController : MonoBehaviour
 
     }
 
-    private void SpawnFishOnDeck()
-    {
-        GameObject boatObj = GameObject.Find("Boat");
-        if (boatObj == null) return;
-
-        // 6 spawn coordinates in front of the player on the deck
-        Vector3[] spawnOffsets = new Vector3[]
-        {
-            new Vector3(0.4f, 0.7f, -0.4f),
-            new Vector3(-0.4f, 0.7f, -0.2f),
-            new Vector3(0f, 0.7f, -0.8f),
-            new Vector3(0.5f, 0.7f, -1.2f),
-            new Vector3(-0.5f, 0.7f, -1.0f),
-            new Vector3(0.1f, 0.7f, -0.5f)
-        };
-
-        for (int i = 0; i < spawnOffsets.Length; i++)
-        {
-            GameObject fishInstance;
-            if (fishPrefab != null)
-            {
-                fishInstance = Instantiate(fishPrefab, boatObj.transform.TransformPoint(spawnOffsets[i]), boatObj.transform.rotation);
-            }
-            else
-            {
-                fishInstance = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                fishInstance.GetComponent<Renderer>().sharedMaterial.color = new Color(0.4f, 0.7f, 1f);
-            }
-
-            fishInstance.name = "Pescado_Fresco_" + (i + 1);
-            fishInstance.tag = "Box";
-
-            // Force fish to be small and cute so they don't cover the boat or look gigantic
-            fishInstance.transform.localScale = new Vector3(0.18f, 0.18f, 0.18f);
-
-            Rigidbody rb = fishInstance.GetComponent<Rigidbody>();
-            if (rb == null) rb = fishInstance.AddComponent<Rigidbody>();
-            rb.mass = 1.0f;
-
-            // Deactivate gravity and make it kinematic at start so they don't fall into the infinite void or slide off
-            rb.isKinematic = true;
-            rb.useGravity = false;
-
-            if (fishInstance.GetComponent<Collider>() == null)
-            {
-                fishInstance.AddComponent<BoxCollider>();
-            }
-
-            if (fishInstance.GetComponent<ObjectGrabbable>() == null)
-            {
-                fishInstance.AddComponent<ObjectGrabbable>();
-            }
-        }
-    }
+   
 
     public int GetFishCaughtCount()
     {
         return fishCaughtCount;
     }
 
-    public int GetFishInBasketCount()
-    {
-        return fishInBasketCount;
-    }
+  
 
     public void NotifyFishCaught()
     {
@@ -295,15 +256,7 @@ public class GameplayCinematicController : MonoBehaviour
         }
     }
 
-    public void NotifyFishPlacedInBasket()
-    {
-        fishInBasketCount++;
-        Debug.Log("Fish placed progress: " + fishInBasketCount + "/" + fishRequiredInBasket);
-        if (fishInBasketCount >= fishRequiredInBasket)
-        {
-            StartCoroutine(FinishMinigameWithCinematic());
-        }
-    }
+
 
     public void NotifyMinijuego1Complete()
     {

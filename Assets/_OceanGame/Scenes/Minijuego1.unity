@@ -1934,7 +1934,6 @@ Transform:
   - {fileID: 1352535262}
   - {fileID: 1144178188}
   - {fileID: 1973596240}
-  - {fileID: 1156933098}
   - {fileID: 1706348608}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3089,37 +3088,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5339643879482439036, guid: f5d2d47a921506840aeb00088f6fbb60, type: 3}
   m_PrefabInstance: {fileID: 1454696976}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1156933096
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1156933098}
-  m_Layer: 0
-  m_Name: GameManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1156933098
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1156933096}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -47.572388, y: -17.107208, z: -129.1316}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 719556677}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1166415375
 GameObject:
   m_ObjectHideFlags: 0
@@ -5493,8 +5461,6 @@ MonoBehaviour:
   currentLevel: 0
   delayBeforeStart: 0.5
   fishRequiredToCatch: 12
-  fishRequiredInBasket: 6
-  fishPrefab: {fileID: 0}
   startCinematicAnchor: {fileID: 0}
   endCinematicAnchor: {fileID: 0}
 --- !u!4 &1788286662
