@@ -11,8 +11,6 @@ public class GameplayCinematicController : MonoBehaviour
     {
         Minijuego1,
         Minijuego2,
-        Minijuego3,
-        Minijuego4
     }
 
     [Header("Current Level Configuration")]
@@ -47,14 +45,6 @@ public class GameplayCinematicController : MonoBehaviour
     private bool isPlayingStartCinematic = false;
     private bool isPlayingEndCinematic = false;
 
-    // Cinematic interpolation values
-    private Vector3 cinematicStartPos;
-    private Quaternion cinematicStartRot;
-    private Vector3 cinematicTargetPos;
-    private Quaternion cinematicTargetRot;
-    private float cinematicProgress = 0f;
-    private float cinematicDuration = 10f; // total camera fly-in time
-
     private void Awake()
     {
         Instance = this;
@@ -78,7 +68,7 @@ public class GameplayCinematicController : MonoBehaviour
             if (canvasPrefab != null)
             {
                 GameObject canvasInst = Instantiate(canvasPrefab);
-                
+
                 dialogosSystem = canvasInst.GetComponentInChildren<Dialogos>();
             }
             else
@@ -98,7 +88,7 @@ public class GameplayCinematicController : MonoBehaviour
         {
             playerMove = playerObj.GetComponent<PlayerMovement>();
             playerLook = playerObj.GetComponent<PlayerLook>();
-            
+
             // Get original camera parent and transform
             mainCamera = playerObj.GetComponentInChildren<Camera>();
             if (mainCamera != null)
@@ -148,89 +138,22 @@ public class GameplayCinematicController : MonoBehaviour
 
         if (currentLevel == LevelType.Minijuego1)
         {
-            AddLine("Carlos", "El barco está algo dañado... No podré salir al mar así.", false);
-            AddLine("Carlos", "Debo buscar las dos cajas de repuesto cerca de la cabaña y colocarlas en las zonas del barco para repararlo.", false);
-            AddLine("Carlos", "Presionaré [E] para agarrar las cajas y llevarlas hasta el barco.", false);
-
-            // Configure camera sweep: Start high in the sky looking at the beautiful reshaped island
+            // Cámara se queda quieta, sin movimiento
             if (mainCamera != null)
             {
                 mainCamera.transform.parent = null; // detach
-                
-                // High panorama showing the cabin, mountain, and ocean
-                cinematicStartPos = new Vector3(-80f, 90f, -120f);
-                cinematicStartRot = Quaternion.Euler(22f, 40f, 0f);
-                
-                // Target player's exact starting eyes
-                if (cameraParent != null)
-                {
-                    cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
-                    cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
-                }
-                else
-                {
-                    cinematicTargetPos = new Vector3(44f, 42.14f + 0.62f, -10f + 0.57f);
-                    cinematicTargetRot = Quaternion.Euler(0, 150f, 0);
-                }
-
-                mainCamera.transform.position = cinematicStartPos;
-                mainCamera.transform.rotation = cinematicStartRot;
-                cinematicProgress = 0f;
-                cinematicDuration = 12f; // grand 12 seconds fly-in
             }
         }
         else if (currentLevel == LevelType.Minijuego2)
         {
-            AddLine("Carlos", "¡Qué hermoso está el mar hoy! El cielo se ve de un azul espectacular.", false);
-            AddLine("Carlos", "Es el momento perfecto para buscar bancos de peces en el océano con el barco.", false);
-            AddLine("Carlos", "Naveguemos usando [W/A/S/D], y cuando estemos en el mar, presionemos [F] para lanzar la caña de pescar.", false);
-            AddLine("Carlos", "¡Atrapemos 3 peces para el almuerzo!", false);
-
             if (mainCamera != null)
             {
                 mainCamera.transform.parent = null;
-                
-                // Low sweeping angle from the ocean waves looking up at the boat
-                cinematicStartPos = new Vector3(140f, 1f, 320f);
-                cinematicStartRot = Quaternion.Euler(-5f, 25f, 0f);
-                
-                if (cameraParent != null)
-                {
-                    cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
-                    cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
-                }
-                else
-                {
-                    cinematicTargetPos = new Vector3(170.80f, 2.0f, 363.20f);
-                    cinematicTargetRot = Quaternion.identity;
-                }
-
-                mainCamera.transform.position = cinematicStartPos;
-                mainCamera.transform.rotation = cinematicStartRot;
-                cinematicProgress = 0f;
-                cinematicDuration = 10f;
             }
         }
-        else if (currentLevel == LevelType.Minijuego3)
-        {
-            AddLine("Carlos", "Llegamos de vuelta al muelle con la pesca fresca.", false);
-            AddLine("Carlos", "Ahora debo colocar los 3 pescados dentro de la cesta del barco para guardarlos bien.", false);
-            AddLine("Carlos", "Puedo tomarlos con [E] y dejarlos caer dentro de la cesta.", false);
-
-            }
-
-            // Apply customizable empty camera anchor override if assigned
-            if (mainCamera != null && startCinematicAnchor != null)
-            {
-                cinematicStartPos = startCinematicAnchor.position;
-                cinematicStartRot = startCinematicAnchor.rotation;
-                mainCamera.transform.position = cinematicStartPos;
-                mainCamera.transform.rotation = cinematicStartRot;
-            }
-
-            dialogosSystem.StartDialogue();
-            dialogueFinishedStarting = true;
-        }
+        dialogosSystem.StartDialogue();
+        dialogueFinishedStarting = true;
+    }
 
     private void AddLine(string charName, string text, bool isRight)
     {
@@ -245,31 +168,11 @@ public class GameplayCinematicController : MonoBehaviour
     {
         if (!dialogueFinishedStarting) return;
 
-        // Perform camera cinematic LERPing during start cinematic
-        if (isPlayingStartCinematic && mainCamera != null)
-        {
-            // Update targets dynamically in case player moves during setup (just to be safe)
-            if (cameraParent != null)
-            {
-                cinematicTargetPos = cameraParent.TransformPoint(originalLocalCamPos);
-                cinematicTargetRot = cameraParent.rotation * originalLocalCamRot;
-            }
-
-            cinematicProgress += Time.deltaTime / cinematicDuration;
-            float t = Mathf.Clamp01(cinematicProgress);
-            
-            // Smooth custom step for slow cinematic deceleration
-            t = Mathf.SmoothStep(0f, 1f, t);
-
-            mainCamera.transform.position = Vector3.Lerp(cinematicStartPos, cinematicTargetPos, t);
-            mainCamera.transform.rotation = Quaternion.Slerp(cinematicStartRot, cinematicTargetRot, t);
-        }
-
         // Detect when cinematic dialogues finish
         if (isPlayingStartCinematic && (dialogosSystem == null || !dialogosSystem.IsDialogueActive()))
         {
             isPlayingStartCinematic = false;
-            
+
             // Restore camera to player/boat parent
             if (mainCamera != null && cameraParent != null)
             {
@@ -300,7 +203,7 @@ public class GameplayCinematicController : MonoBehaviour
     private void OnStartCinematicFinished()
     {
         Debug.Log("Start Cinematic Finished. Gameplay starts!");
-        
+
         if (currentLevel == LevelType.Minijuego2)
         {
             GameObject boatObj = GameObject.Find("Boat");
@@ -314,10 +217,7 @@ public class GameplayCinematicController : MonoBehaviour
                 mainCamera.gameObject.AddComponent<BoatCameraFollow>();
             }
         }
-        else if (currentLevel == LevelType.Minijuego3)
-        {
-            SpawnFishOnDeck();
-        }
+
     }
 
     private void SpawnFishOnDeck()
@@ -358,7 +258,7 @@ public class GameplayCinematicController : MonoBehaviour
             Rigidbody rb = fishInstance.GetComponent<Rigidbody>();
             if (rb == null) rb = fishInstance.AddComponent<Rigidbody>();
             rb.mass = 1.0f;
-            
+
             // Deactivate gravity and make it kinematic at start so they don't fall into the infinite void or slide off
             rb.isKinematic = true;
             rb.useGravity = false;
@@ -498,7 +398,7 @@ public class GameplayCinematicController : MonoBehaviour
     private void OnEndCinematicFinished()
     {
         EnableControls();
-        
+
         // Restore camera before changing scene
         if (mainCamera != null && cameraParent != null)
         {
@@ -522,23 +422,13 @@ public class GameplayCinematicController : MonoBehaviour
         if (playerMove != null) playerMove.enabled = false;
         if (playerLook != null) playerLook.enabled = false;
         if (boatControls != null) boatControls.enabled = false;
-        
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     private void EnableControls()
     {
-        if (currentLevel == LevelType.Minijuego4)
-        {
-            if (playerMove != null) playerMove.enabled = false;
-            if (playerLook != null) playerLook.enabled = false;
-            if (boatControls != null) boatControls.enabled = false;
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            return;
-        }
 
         if (playerMove != null) playerMove.enabled = true;
         if (playerLook != null) playerLook.enabled = true;

@@ -1,49 +1,40 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 public class PausaBoton : MonoBehaviour
 {
+    [Tooltip("Opcional: referencia directa al menú de pausa. Si se deja vacío se usa PauseMenuController.Instance.")]
+    public PauseMenuController pauseMenu;
+
+    // Conservado por compatibilidad con escenas antiguas (ya no se usa).
     public GameObject menuPausa;
-
-    private bool juegoPausado = false;
-
 
     public void OnPause(InputValue value)
     {
         if (!value.isPressed)
             return;
 
-        if (juegoPausado)
+        var menu = pauseMenu != null ? pauseMenu : PauseMenuController.Instance;
+        if (menu != null)
         {
-            Reanudar();
-            Debug.Log("Pausado");
+            menu.Toggle();
         }
         else
         {
-            Pausar();
-            Debug.Log("No Pausado");
-
+            Debug.LogWarning("PausaBoton: no se encontró un PauseMenuController en la escena.");
         }
     }
 
+    // Métodos públicos por si quieres enlazarlos a botones desde el Inspector.
     public void Reanudar()
     {
-        menuPausa.SetActive(false);
-        Time.timeScale = 1f;
-        juegoPausado = false;
+        var menu = pauseMenu != null ? pauseMenu : PauseMenuController.Instance;
+        if (menu != null) menu.Resume();
     }
 
-    public void Pausar()
+    public void Salir()
     {
-        menuPausa.SetActive(true);
-        Time.timeScale = 0f;
-        juegoPausado = true;
-    }
-
-    public void BacktotheMenu()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene("Menu");
+        var menu = pauseMenu != null ? pauseMenu : PauseMenuController.Instance;
+        if (menu != null) menu.Exit();
     }
 }
