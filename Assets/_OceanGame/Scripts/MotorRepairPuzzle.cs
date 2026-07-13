@@ -6,12 +6,11 @@ public class MotorRepairPuzzle : MonoBehaviour
     public static MotorRepairPuzzle Instance;
 
     [Header("Puzzle Requirements")]
-    public SnapZone[] materialZones; // Needs 4 SnapZones for Battery, Cable, Gears, Fuel
+    public SnapZone[] materialZones;
     public GameObject brokenMotorVisual;
-    public GameObject repairedMotorObject; // This is the motor that becomes grabbable after repair
+    public GameObject repairedMotorObject; 
 
     [Header("Effects")]
-    public ParticleSystem repairParticles;
     public AudioSource soundFeedback;
     public AudioClip repairSuccessSound;
 
@@ -71,25 +70,17 @@ public class MotorRepairPuzzle : MonoBehaviour
     private IEnumerator RepairSuccessRoutine()
     {
         isRepaired = true;
-        Debug.Log("Motor Repair Puzzle SOLVED!");
 
-        // 1. Play beautiful spark feedback
-        if (repairParticles != null)
-        {
-            repairParticles.Play();
-        }
 
         if (soundFeedback != null && repairSuccessSound != null)
         {
             soundFeedback.PlayOneShot(repairSuccessSound);
         }
 
-        // Show a 3D float-aside Edith Finch dialogue about repair
         SpawnDialogueText("¡SÍ! El motor está completamente reparado y listo para ser montado.");
 
         yield return new WaitForSeconds(1.5f);
 
-        // 2. Transition visuals
         if (brokenMotorVisual != null)
         {
             brokenMotorVisual.SetActive(false);
@@ -99,7 +90,6 @@ public class MotorRepairPuzzle : MonoBehaviour
         {
             repairedMotorObject.SetActive(true);
             
-            // Expose as grabbable object
             ObjectGrabbable grabbable = repairedMotorObject.GetComponent<ObjectGrabbable>();
             if (grabbable == null)
             {
@@ -108,12 +98,10 @@ public class MotorRepairPuzzle : MonoBehaviour
             grabbable.enabled = true;
         }
 
-        // Deactivate all snap zone outline visuals for clean view
         foreach (var zone in materialZones)
         {
             if (zone != null)
             {
-                // Simple cleanup of children (ghost visuals)
                 for (int i = zone.transform.childCount - 1; i >= 0; i--)
                 {
                     Destroy(zone.transform.GetChild(i).gameObject);
@@ -127,7 +115,6 @@ public class MotorRepairPuzzle : MonoBehaviour
         GameObject textGo = new GameObject("Dialogue3D_Repaired");
         FloatingText3D ft = textGo.AddComponent<FloatingText3D>();
         ft.textToShow = msg;
-        ft.followCamera = true; // float on the side of player
         ft.displayDuration = 4.0f;
     }
 }

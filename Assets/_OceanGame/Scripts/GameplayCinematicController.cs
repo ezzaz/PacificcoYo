@@ -56,30 +56,8 @@ public class GameplayCinematicController : MonoBehaviour
     {
         yield return new WaitForSeconds(delayBeforeStart);
 
-        // Find Dialogue System
         dialogosSystem = FindFirstObjectByType<Dialogos>();
-        if (dialogosSystem == null)
-        {
-            // Try to find canvas or instantiate prefab if missing
-            GameObject canvasPrefab = Resources.Load<GameObject>("Canvas");
-            if (canvasPrefab != null)
-            {
-                GameObject canvasInst = Instantiate(canvasPrefab);
 
-                dialogosSystem = canvasInst.GetComponentInChildren<Dialogos>();
-            }
-            else
-            {
-                // Fallback: try to find any existing Canvas in the scene
-                Canvas existingCanvas = FindFirstObjectByType<Canvas>();
-                if (existingCanvas != null)
-                {
-                    dialogosSystem = existingCanvas.GetComponentInChildren<Dialogos>();
-                }
-            }
-        }
-
-        // Find Player components
         GameObject playerObj = GameObject.Find("Player");
         if (playerObj != null)
         {
@@ -119,24 +97,10 @@ public class GameplayCinematicController : MonoBehaviour
 
     private void PlayStartDialogue()
     {
-        if (dialogosSystem == null)
-        {
-            Debug.LogWarning("Dialogue system missing at startup. Direct level initialization.");
-            isPlayingStartCinematic = false;
-            EnableControls();
-            OnStartCinematicFinished();
-            return;
-        }
-
+       
         isPlayingStartCinematic = true;
 
-        dialogosSystem.dialogueLines.Clear();
-
-        if (currentLevel == LevelType.Minijuego1)
-        {
-            // Minijuego 1: sin limitaciones, el jugador puede moverse libremente
-        }
-        else if (currentLevel == LevelType.Minijuego2)
+        if (currentLevel == LevelType.Minijuego2)
         {
             DisableControls();
 
@@ -144,7 +108,6 @@ public class GameplayCinematicController : MonoBehaviour
             {
                 mainCamera.transform.parent = null;
 
-                // Low sweeping angle from the ocean waves looking up at the boat
                 Vector3 cinematicStartPos = new Vector3(140f, 1f, 320f);
                 Quaternion cinematicStartRot = Quaternion.Euler(-5f, 25f, 0f);
 
@@ -164,7 +127,6 @@ public class GameplayCinematicController : MonoBehaviour
             }
         }
 
-        dialogosSystem.StartDialogue();
         dialogueFinishedStarting = true;
     }
 
@@ -179,14 +141,11 @@ public class GameplayCinematicController : MonoBehaviour
 
     private void Update()
     {
-        if (!dialogueFinishedStarting) return;
 
-        // Detect when cinematic dialogues finish
-        if (isPlayingStartCinematic && (dialogosSystem == null || !dialogosSystem.IsDialogueActive()))
+        if (isPlayingStartCinematic)
         {
             isPlayingStartCinematic = false;
 
-            // Restore camera to player/boat parent
             if (mainCamera != null && cameraParent != null)
             {
                 mainCamera.transform.parent = cameraParent;
@@ -201,25 +160,14 @@ public class GameplayCinematicController : MonoBehaviour
 
             OnStartCinematicFinished();
         }
-        else if (isPlayingEndCinematic && (dialogosSystem == null || !dialogosSystem.IsDialogueActive()))
+        else if (isPlayingEndCinematic)
         {
             isPlayingEndCinematic = false;
             OnEndCinematicFinished();
         }
     }
-
-    private bool IsDialogueActive()
-    {
-        if (dialogosSystem != null)
-        {
-            return dialogosSystem.lineIndex < dialogosSystem.dialogueLines.Count;
-        }
-        return false;
-    }
-
     private void OnStartCinematicFinished()
     {
-        Debug.Log("Start Cinematic Finished. Gameplay starts!");
 
         if (currentLevel == LevelType.Minijuego2)
         {
@@ -236,26 +184,19 @@ public class GameplayCinematicController : MonoBehaviour
         }
 
     }
-
-   
-
     public int GetFishCaughtCount()
     {
         return fishCaughtCount;
     }
 
-  
-
     public void NotifyFishCaught()
     {
         fishCaughtCount++;
-        Debug.Log("Fish caught progress: " + fishCaughtCount + "/" + fishRequiredToCatch);
         if (fishCaughtCount >= fishRequiredToCatch)
         {
             StartCoroutine(FinishMinigameWithCinematic());
         }
     }
-
 
 
     public void NotifyMinijuego1Complete()
@@ -308,44 +249,6 @@ public class GameplayCinematicController : MonoBehaviour
             }
         }
 
-        // Failsafe: if dialogosSystem is null, try to load it
-        if (dialogosSystem == null)
-        {
-            dialogosSystem = FindFirstObjectByType<Dialogos>();
-            if (dialogosSystem == null)
-            {
-                GameObject canvasPrefab = Resources.Load<GameObject>("Canvas");
-                if (canvasPrefab != null)
-                {
-                    GameObject canvasInst = Instantiate(canvasPrefab);
-                    dialogosSystem = canvasInst.GetComponentInChildren<Dialogos>();
-                }
-            }
-        }
-
-        if (dialogosSystem != null)
-        {
-            dialogosSystem.dialogueLines.Clear();
-
-            if (currentLevel == LevelType.Minijuego1)
-            {
-                AddLine("Carlos", "¡Excelente! He reparado las partes dañadas del barco.", false);
-                AddLine("Carlos", "El barco se siente firme y listo para zarpar hacia las tranquilas aguas.", false);
-                AddLine("Carlos", "Naveguemos un rato y busquemos bancos de peces.", false);
-            }
-            else if (currentLevel == LevelType.Minijuego2)
-            {
-                AddLine("Carlos", "¡Excelente pesca! Con estos peces tenemos más que suficiente para cenar rico y fresco.", false);
-                AddLine("Carlos", "Regresemos al muelle para celebrar un hermoso día.", false);
-            }
-
-            dialogosSystem.StartDialogue();
-        }
-        else
-        {
-            Debug.LogWarning("Dialogue system missing during level complete. Loading next level immediately.");
-            OnEndCinematicFinished();
-        }
     }
 
     private void OnEndCinematicFinished()

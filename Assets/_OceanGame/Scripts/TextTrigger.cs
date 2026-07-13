@@ -7,9 +7,7 @@ public class TextTrigger : MonoBehaviour
     [TextArea(2, 5)] public string textMessage = "Funciona...";
 
     [Header("Text Configuration")]
-    public bool followCamera = false;
     public Transform textAnchor; 
-    public Vector3 textSpawnOffset = new Vector3(0f, 2.5f, 0f); 
     public float displayDuration = 4.5f;
     public float typingSpeed = 0.04f;
 
@@ -38,27 +36,18 @@ public class TextTrigger : MonoBehaviour
     public void SpawnFloatingText()
     {
         GameObject textGo = new GameObject("Text3D");
+       
         
-        if (followCamera)
-        {
-            textGo.transform.position = transform.position; 
-        }
-        else
-        {
             if (textAnchor != null)
             {
                 textGo.transform.position = textAnchor.position;
                 textGo.transform.rotation = textAnchor.rotation;
             }
-            else
-            {
-                textGo.transform.position = transform.position + textSpawnOffset;
-            }
-        }
+          
+        
 
         FloatingText3D ft = textGo.AddComponent<FloatingText3D>();
         ft.textToShow = textMessage;
-        ft.followCamera = followCamera;
         ft.displayDuration = displayDuration;
         ft.typingSpeed = typingSpeed;
         

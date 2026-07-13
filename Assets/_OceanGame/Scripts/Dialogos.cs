@@ -142,8 +142,7 @@ public class Dialogos : MonoBehaviour
         drift.textToShow = dialogueLines[lineIndex].text;
         drift.displayDuration = 99f; // Keep alive until we manually destroy/advance it
         drift.typingSpeed = typingTime;
-        drift.followOffset = new Vector3(0f, 0.3f, 3.2f); // Centered, slightly lower, beautiful position
-        drift.driftDirection = new Vector3(0.02f, 0.1f, -0.02f); // very gentle float
+
 
         simulatedText = "";
         dialogueText.text = ""; // Keep references happy

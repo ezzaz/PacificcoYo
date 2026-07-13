@@ -57,7 +57,6 @@ public class OceanBoundaryTrigger : MonoBehaviour
         GameObject textGo = new GameObject("Boundary_Warning_3D");
         FloatingText3D ft = textGo.AddComponent<FloatingText3D>();
         ft.textToShow = "Llegaste al borde del mar abierto.\nCarlos prefiere mantenerse cerca de las zonas de pesca.";
-        ft.followCamera = true;
         ft.displayDuration = 4.0f;
     }
 }

@@ -9,21 +9,14 @@ public class FloatingText3D : MonoBehaviour
     public string textToShow = "";
     public float typingSpeed = 0.04f;
     public float displayDuration = 4.0f;
-    public bool lookAtCamera = true;
 
-    [Header("Animation Settings")]
-    public bool followCamera = false;
-    public Vector3 followOffset = new Vector3(1.5f, 0.5f, 3.5f);
-    public Vector3 driftDirection = new Vector3(0f, 0.15f, 0.02f);
-    public float scaleSpeed = 1.2f;
+
 
     [Header("Ghostly Breeze Effect")]
     public bool dissolveOnCollision = true;
     public float dissolveSpeed = 2f;
 
     private TextMeshPro tmp;
-    private Camera mainCam;
-    private float elapsed = 0f;
     private bool isDissolving = false;
     private Vector3 currentVelocity = Vector3.zero;
 
@@ -39,55 +32,21 @@ public class FloatingText3D : MonoBehaviour
         // Setup trigger for collision dissolve
         SphereCollider sc = gameObject.AddComponent<SphereCollider>();
         sc.isTrigger = true;
-        sc.radius = 1.5f; 
+        sc.radius = 5.5f; 
     }
 
     private void Start()
     {
-        mainCam = Camera.main;
-        if (mainCam == null) mainCam = FindFirstObjectByType<Camera>();
-
-        if (followCamera && mainCam != null)
-        {
-            transform.position = mainCam.transform.TransformPoint(followOffset);
-            transform.rotation = mainCam.transform.rotation;
-        }
-
         StartCoroutine(AnimateTextRoutine());
     }
 
-    private void Update()
-    {
-        if (mainCam == null || isDissolving) return;
-
-        if (followCamera)
-        {
-            Vector3 targetPos = mainCam.transform.TransformPoint(followOffset) + (mainCam.transform.rotation * driftDirection * elapsed);
-            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * 3f);
-            transform.rotation = Quaternion.Slerp(transform.rotation, mainCam.transform.rotation, Time.deltaTime * 4f);
-        }
-        else
-        {
-            transform.position += driftDirection * Time.deltaTime;
-
-            if (lookAtCamera)
-            {
-                Vector3 directionToCam = mainCam.transform.position - transform.position;
-                directionToCam.y = 0;
-                if (directionToCam != Vector3.zero)
-                {
-                    transform.rotation = Quaternion.LookRotation(-directionToCam);
-                }
-            }
-        }
-
-        elapsed += Time.deltaTime;
-    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (dissolveOnCollision && other.CompareTag("Player") && !isDissolving)
+        Debug.Log("Entro algo");
+        if (dissolveOnCollision && other.CompareTag("Player"))
         {
+            Debug.Log("Entro");
             StartCoroutine(GhostlyBreezeDissolve());
         }
     }
@@ -95,27 +54,45 @@ public class FloatingText3D : MonoBehaviour
     private IEnumerator GhostlyBreezeDissolve()
     {
         isDissolving = true;
-        StopAllCoroutines();
+        StopCoroutine(nameof(AnimateTextRoutine));
 
-        float fadeDuration = 1.0f;
-        float timer = 0f;
-        Vector3 initialPos = transform.position;
-        Vector3 breezeDir = (transform.position - mainCam.transform.position).normalized + Vector3.up;
-        Vector3 initialScale = transform.localScale;
+        float fadeDuration = 0.3f;
+        float elapsedDissolve = 0f;
+        Vector3 breezeDir = Vector3.back;
 
-        while (timer < fadeDuration)
+        tmp.ForceMeshUpdate();
+
+        Color32 baseColor = tmp.color;
+
+        while (elapsedDissolve < fadeDuration)
         {
-            timer += Time.deltaTime;
-            float t = timer / fadeDuration;
-
-            // Move as if blown by a ghostly breeze
+            elapsedDissolve += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedDissolve / fadeDuration);
             transform.position += breezeDir * (Time.deltaTime * dissolveSpeed);
-            
-            // Fade alpha
-            tmp.color = new Color(tmp.color.r, tmp.color.g, tmp.color.b, Mathf.Lerp(1f, 0f, t));
-            
-            // Scale up and distort
-            transform.localScale = initialScale * Mathf.Lerp(1f, 2.5f, t);
+            int totalChars = tmp.textInfo.characterCount;
+
+            for (int i = 0; i < totalChars; i++)
+            {
+                var charInfo = tmp.textInfo.characterInfo[i];
+
+                if (!charInfo.isVisible) continue;
+
+                float charDelay = (float)(totalChars - i) / totalChars * 0.3f;
+                float charAlpha = Mathf.Lerp(1f, 0f, Mathf.Clamp01((t - charDelay) / (1f - charDelay)));
+
+                Color32 newColor = new Color32(baseColor.r, baseColor.g, baseColor.b, (byte)(charAlpha * 255));
+
+                int materialIndex = charInfo.materialReferenceIndex;
+                int vertexIndex = charInfo.vertexIndex;
+                Color32[] vertexColors = tmp.textInfo.meshInfo[materialIndex].colors32;
+
+                vertexColors[vertexIndex + 0] = newColor;
+                vertexColors[vertexIndex + 1] = newColor;
+                vertexColors[vertexIndex + 2] = newColor;
+                vertexColors[vertexIndex + 3] = newColor;
+            }
+
+            tmp.UpdateVertexData(TMP_VertexDataUpdateFlags.Colors32);
 
             yield return null;
         }
