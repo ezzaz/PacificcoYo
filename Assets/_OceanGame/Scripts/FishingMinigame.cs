@@ -23,11 +23,19 @@ public class FishingMinigame : MonoBehaviour
     [Header("Visual Prefabs (Optional)")]
     [SerializeField] private GameObject customBobberPrefab;
 
+    [Header("Audio Settings")]
+    [SerializeField] private AudioClip castSound;
+    [SerializeField] private AudioClip biteSound;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip failSound;
+    [SerializeField] private float audioVolume = 0.8f;
+
     // State
     private FishingState currentState = FishingState.Idle;
     private float stateTimer = 0f;
     private GameObject activeBobber;
     private Waves oceanWaves;
+    private AudioSource audioSource;
 
     public bool IsFishingActive()
     {
@@ -39,13 +47,13 @@ public class FishingMinigame : MonoBehaviour
     private FishingZone currentZone = null;
 
     // Stardew Valley Minigame State Variables
-    private float barY = 0.1f; // 0 (bottom) to 1 (top)
+    private float barY = 0.1f;
     private float barVelocity = 0f;
-    private float barHeight = 0.5f; // height of green catcher bar (normalized)
-    private float fishY = 0.4f; // 0 to 1
+    private float barHeight = 0.5f;
+    private float fishY = 0.4f;
     private float fishTargetY = 0.5f;
     private float fishTimer = 0f;
-    private float catchProgress = 0.35f; // starts with a little progress, 0 to 1
+    private float catchProgress = 0.35f;
     private FishType currentActiveFish;
     private float fishDifficultyFactor = 1.0f;
 
@@ -68,7 +76,7 @@ public class FishingMinigame : MonoBehaviour
         public string Description;
         public float Points;
         public Color TextColor;
-        public float Difficulty; // 0.1 (very easy) to 2.0 (super wild)
+        public float Difficulty;
 
         public FishType(string name, string desc, float points, Color color, float difficulty)
         {
@@ -94,7 +102,7 @@ public class FishingMinigame : MonoBehaviour
     private void Start()
     {
         oceanWaves = FindFirstObjectByType<Waves>();
-        
+
         // Find camera
         Camera cam = GetComponentInChildren<Camera>();
         if (cam != null)
@@ -109,6 +117,15 @@ public class FishingMinigame : MonoBehaviour
         {
             playerCameraTransform = transform;
         }
+
+        // Setup AudioSource
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.volume = audioVolume;
 
         // Initialize colors for custom UI styling
         greenTexture = CreateColorTexture(new Color(0f, 0.8f, 0.1f, 0.6f));
@@ -162,7 +179,7 @@ public class FishingMinigame : MonoBehaviour
             case FishingState.BiteActive:
                 float vibrate = Mathf.Sin(Time.time * 60f) * 0.06f;
                 UpdateBobberBuoyancy(-0.9f + vibrate);
-                
+
                 stateTimer -= Time.deltaTime;
                 if (stateTimer <= 0f)
                 {
@@ -171,7 +188,7 @@ public class FishingMinigame : MonoBehaviour
                 break;
 
             case FishingState.MiniGame:
-                UpdateBobberBuoyancy(-1.2f); 
+                UpdateBobberBuoyancy(-1.2f);
                 UpdateStardewPhysics();
                 break;
 
@@ -204,6 +221,9 @@ public class FishingMinigame : MonoBehaviour
     {
         currentState = FishingState.Casting;
         hudMessage = "";
+
+        // Reproducir sonido de lanzamiento
+        PlaySound(castSound);
         ShowStatus("Lanzando la caña con paciencia...", 2f);
 
         // Instantiate bobber
@@ -236,7 +256,7 @@ public class FishingMinigame : MonoBehaviour
 
         Vector3 startPos = playerCameraTransform.position + playerCameraTransform.forward * 1.5f - Vector3.up * 0.5f;
         Vector3 targetPos = playerCameraTransform.position + playerCameraTransform.forward * castDistance;
-        
+
         // Find ocean level at target
         if (oceanWaves != null)
         {
@@ -268,8 +288,8 @@ public class FishingMinigame : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
             Vector3 currentPos = Vector3.Lerp(startPos, targetPos, t);
-            currentPos.y += Mathf.Sin(t * Mathf.PI) * 5f; // Parabolic arc
-            
+            currentPos.y += Mathf.Sin(t * Mathf.PI) * 5f;
+
             if (activeBobber != null)
             {
                 activeBobber.transform.position = currentPos;
@@ -288,7 +308,7 @@ public class FishingMinigame : MonoBehaviour
         }
         else
         {
-            // Missed the zone! Carlos rewinds the rod
+            // Missed the zone!
             ShowStatus("No hay peces por aquí...\nDebes lanzar el anzuelo dentro de los círculos activos de agua (Zonas de Pesca).", 4f);
             if (activeBobber != null)
             {
@@ -318,12 +338,15 @@ public class FishingMinigame : MonoBehaviour
         currentState = FishingState.BiteActive;
         stateTimer = biteDuration;
         hudMessage = "¡HA PICADO! ¡Presiona [F] para luchar!";
+
+        // Reproducir sonido de picada
+        PlaySound(biteSound);
     }
 
     private void StartMiniGameStruggle()
     {
         currentState = FishingState.MiniGame;
-        
+
         // Choose random fish from database
         int fishIdx = Random.Range(0, fishDatabase.Length);
         currentActiveFish = fishDatabase[fishIdx];
@@ -342,9 +365,8 @@ public class FishingMinigame : MonoBehaviour
 
     private void UpdateStardewPhysics()
     {
-        // 1. Catcher Bar Physics (Gravity and Thrust Input)
-        float gravity = 3.5f;   // pulling down
-        float thrust = 4.8f;    // pushing up when [F] is held
+        float gravity = 3.5f;
+        float thrust = 4.8f;
         float maxSpeed = 2.2f;
 
         bool isHoldingF = Keyboard.current != null && Keyboard.current.fKey.isPressed;
@@ -358,58 +380,50 @@ public class FishingMinigame : MonoBehaviour
             barVelocity -= gravity * Time.deltaTime;
         }
 
-        // Clamp speed
         barVelocity = Mathf.Clamp(barVelocity, -maxSpeed, maxSpeed);
         barY += barVelocity * Time.deltaTime;
 
-        // Bounce/Clamp at boundaries
         if (barY <= barHeight / 2f)
         {
             barY = barHeight / 2f;
-            barVelocity = -barVelocity * 0.15f; // Soft bounce
+            barVelocity = -barVelocity * 0.15f;
         }
         else if (barY >= 1f - barHeight / 2f)
         {
             barY = 1f - barHeight / 2f;
-            barVelocity = -barVelocity * 0.15f; // Soft bounce
+            barVelocity = -barVelocity * 0.15f;
         }
 
-        // 2. Fish AI Movement Simulation (Stardew Style)
         fishTimer -= Time.deltaTime;
         if (fishTimer <= 0f)
         {
-            // Choose next position randomly weighted by difficulty
             fishTargetY = Random.Range(0.05f, 0.95f);
             fishTimer = Random.Range(0.4f / fishDifficultyFactor, 1.2f / fishDifficultyFactor);
         }
 
-        // Smoothly approach target Y with some organic noise
         float activeSpeed = 3.0f * fishDifficultyFactor;
         fishY = Mathf.MoveTowards(fishY, fishTargetY, activeSpeed * Time.deltaTime);
 
-        // Add small jitter noise for wild fish
         if (fishDifficultyFactor > 1.0f)
         {
             fishY += Mathf.Sin(Time.time * 25f) * 0.004f;
         }
         fishY = Mathf.Clamp(fishY, 0.02f, 0.98f);
 
-        // 3. Catch Progress Rules
         float halfBar = barHeight / 2f;
         bool isFishInside = (fishY >= barY - halfBar) && (fishY <= barY + halfBar);
 
         if (isFishInside)
         {
-            catchProgress += 0.22f * Time.deltaTime; // speed to win
+            catchProgress += 0.22f * Time.deltaTime;
         }
         else
         {
-            catchProgress -= 0.15f * Time.deltaTime; // speed to lose
+            catchProgress -= 0.15f * Time.deltaTime;
         }
 
         catchProgress = Mathf.Clamp01(catchProgress);
 
-        // Win or Lose checks
         if (catchProgress >= 1f)
         {
             ReelInCatch();
@@ -425,6 +439,9 @@ public class FishingMinigame : MonoBehaviour
         currentState = FishingState.Reeling;
         hudMessage = "";
 
+        // Reproducir sonido de éxito
+        PlaySound(successSound);
+
         int caughtSoFar = 1;
         int required = 12;
         if (GameplayCinematicController.Instance != null)
@@ -435,7 +452,6 @@ public class FishingMinigame : MonoBehaviour
 
         string successMsg = $"¡Has pescado un {currentActiveFish.Name.ToUpper()}!\n\n\"{currentActiveFish.Description}\"\n\n(+{currentActiveFish.Points} puntos)\n\nProgreso: {caughtSoFar} de {required} peces.";
 
-        // Handle depletion of the fishing zone after 4 fishes are caught in it
         if (currentZone != null)
         {
             bool isDepleted = currentZone.RegisterFishCaught();
@@ -449,7 +465,6 @@ public class FishingMinigame : MonoBehaviour
 
         ShowStatus(successMsg, 5f);
 
-        // Award score
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.AddScore(currentActiveFish.Points);
@@ -478,6 +493,8 @@ public class FishingMinigame : MonoBehaviour
 
     private void LoseFish()
     {
+        // Reproducir sonido de fracaso
+        PlaySound(failSound);
         ShowStatus("¡Se escapó! El pez luchó con demasiada fuerza.", 3f);
         ResetToIdle();
     }
@@ -499,6 +516,17 @@ public class FishingMinigame : MonoBehaviour
         messageDisplayTimer = duration;
     }
 
+    /// <summary>
+    /// Reproduce un sonido si está asignado
+    /// </summary>
+    private void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip, audioVolume);
+        }
+    }
+
     private void OnDestroy()
     {
         if (activeBobber != null)
@@ -509,7 +537,6 @@ public class FishingMinigame : MonoBehaviour
 
     private void OnGUI()
     {
-        // 1. Draw top instruction/HUD message
         if (!string.IsNullOrEmpty(hudMessage))
         {
             GUIStyle hudStyle = new GUIStyle(GUI.skin.label);
@@ -519,15 +546,12 @@ public class FishingMinigame : MonoBehaviour
             hudStyle.normal.textColor = Color.yellow;
 
             Rect hudRect = new Rect(0, Screen.height - 180, Screen.width, 40);
-            // Shadow effect
             GUI.Label(new Rect(hudRect.x + 2, hudRect.y + 2, hudRect.width, hudRect.height), hudMessage, new GUIStyle(hudStyle) { normal = { textColor = Color.black } });
             GUI.Label(hudRect, hudMessage, hudStyle);
         }
 
-        // 3. Draw Stardew Valley Fishing Minigame Interface
         if (currentState == FishingState.MiniGame)
         {
-            // Container Panel background
             float panelWidth = 140f;
             float panelHeight = 360f;
             float panelX = Screen.width - panelWidth - 40f;
@@ -538,7 +562,6 @@ public class FishingMinigame : MonoBehaviour
             panelStyle.normal.background = darkBlueTexture;
             GUI.Box(panelRect, GUIContent.none, panelStyle);
 
-            // Title label
             GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
             titleStyle.alignment = TextAnchor.MiddleCenter;
             titleStyle.fontSize = 13;
@@ -546,35 +569,30 @@ public class FishingMinigame : MonoBehaviour
             titleStyle.normal.textColor = Color.yellow;
             GUI.Label(new Rect(panelRect.x, panelRect.y + 10, panelWidth, 20), "PESCANDO...", titleStyle);
 
-            // Sub-instruction
             GUIStyle keyStyle = new GUIStyle(GUI.skin.label);
             keyStyle.alignment = TextAnchor.MiddleCenter;
             keyStyle.fontSize = 10;
             keyStyle.normal.textColor = Color.white;
             GUI.Label(new Rect(panelRect.x + 5, panelRect.y + 30, panelWidth - 10, 30), "Mantén [F] sube\nSuelta [F] baja", keyStyle);
 
-            // The main vertical tube/slider area
             Rect tubeRect = new Rect(panelRect.x + 25, panelRect.y + 70, 35, 260);
             GUIStyle tubeStyle = new GUIStyle(GUI.skin.box);
             tubeStyle.normal.background = grayTexture;
             GUI.Box(tubeRect, GUIContent.none, tubeStyle);
 
-            // Catcher Bar (Green Box)
             float normCatcherHeight = barHeight * tubeRect.height;
             float normCatcherY = tubeRect.y + (tubeRect.height - (barY * tubeRect.height) - normCatcherHeight / 2f);
-            
-            // Soft limits clamping for display
+
             normCatcherY = Mathf.Clamp(normCatcherY, tubeRect.y, tubeRect.y + tubeRect.height - normCatcherHeight);
-            
+
             Rect catcherRect = new Rect(tubeRect.x, normCatcherY, tubeRect.width, normCatcherHeight);
             GUIStyle catcherStyle = new GUIStyle(GUI.skin.box);
             catcherStyle.normal.background = greenTexture;
             GUI.Box(catcherRect, GUIContent.none, catcherStyle);
 
-            // Fish Marker (Orange/Gold square inside the tube)
             float normFishY = tubeRect.y + (tubeRect.height - (fishY * tubeRect.height) - 10f);
             normFishY = Mathf.Clamp(normFishY, tubeRect.y, tubeRect.y + tubeRect.height - 20f);
-            
+
             Rect fishRect = new Rect(tubeRect.x + 6, normFishY, tubeRect.width - 12, 20);
             GUIStyle fishVisualStyle = new GUIStyle(GUI.skin.box);
             fishVisualStyle.normal.background = yellowTexture;
@@ -582,7 +600,6 @@ public class FishingMinigame : MonoBehaviour
             fishVisualStyle.fontSize = 12;
             GUI.Box(fishRect, "🐟", fishVisualStyle);
 
-            // Progress Bar (Right side of the tube)
             Rect progBackgroundRect = new Rect(tubeRect.xMax + 12, tubeRect.y, 10, tubeRect.height);
             GUI.Box(progBackgroundRect, GUIContent.none, tubeStyle);
 
@@ -590,7 +607,6 @@ public class FishingMinigame : MonoBehaviour
             float progFillY = progBackgroundRect.y + (progBackgroundRect.height - progFillHeight);
             Rect progFillRect = new Rect(progBackgroundRect.x, progFillY, progBackgroundRect.width, progFillHeight);
 
-            // Choose color of progress dynamically
             Texture2D progressColorTex = redTexture;
             if (catchProgress > 0.65f) progressColorTex = greenTexture;
             else if (catchProgress > 0.3f) progressColorTex = yellowTexture;

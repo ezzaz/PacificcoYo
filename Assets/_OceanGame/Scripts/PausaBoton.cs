@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class PausaBoton : MonoBehaviour
 {
@@ -37,4 +38,5 @@ public class PausaBoton : MonoBehaviour
         var menu = pauseMenu != null ? pauseMenu : PauseMenuController.Instance;
         if (menu != null) menu.Exit();
     }
+
 }

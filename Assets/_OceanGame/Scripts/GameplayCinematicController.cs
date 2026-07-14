@@ -21,9 +21,7 @@ public class GameplayCinematicController : MonoBehaviour
     public int fishRequiredToCatch = 12;
     private int fishCaughtCount = 0;
 
-   
-
-    private Dialogos dialogosSystem;
+  
     private PlayerMovement playerMove;
     private PlayerLook playerLook;
     private WaterBoat boatControls;
@@ -56,7 +54,6 @@ public class GameplayCinematicController : MonoBehaviour
     {
         yield return new WaitForSeconds(delayBeforeStart);
 
-        dialogosSystem = FindFirstObjectByType<Dialogos>();
 
         GameObject playerObj = GameObject.Find("Player");
         if (playerObj != null)
@@ -130,15 +127,8 @@ public class GameplayCinematicController : MonoBehaviour
         dialogueFinishedStarting = true;
     }
 
-    private void AddLine(string charName, string text, bool isRight)
-    {
-        DialogueLine line = new DialogueLine();
-        line.characterName = charName;
-        line.text = text;
-        line.isRightSpeaker = isRight;
-        dialogosSystem.dialogueLines.Add(line);
-    }
-
+    
+   
     private void Update()
     {
 
@@ -234,8 +224,7 @@ public class GameplayCinematicController : MonoBehaviour
                 mainCamera.transform.rotation = endCinematicAnchor.rotation;
             }
             else
-            {
-                // Fallbacks
+            {   
                 if (currentLevel == LevelType.Minijuego1)
                 {
                     mainCamera.transform.position = new Vector3(20f, 15f, 100f);
